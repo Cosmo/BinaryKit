@@ -26,7 +26,7 @@ binary.bits(0, 16)        // 57005
 
 // Bytes
 binary.byte(0) as Int     // 222
-binary.byte(0, 2) as Int  // 57005
+binary.bytes(0, 2) as Int // 57005
 ```
 
 ## Todos
