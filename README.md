@@ -17,23 +17,66 @@ let binary = Binary(bytes: [0xDE, 0xAD]) // 1101 1110 1010 1101
 ```
 
 ```swift
-// Bits
-binary.bit(0) as Int      // 1
-binary.bit(1) as Int      // 1
-binary.bit(2) as Bit      // .Zero
-binary.bit(3) as Bit      // .One
-binary.bits(0, 16)        // 57005 
+// Read first 4 bits, bit by bit
+var binary = Binary(bytes: [0xDE, 0xAD])
+print(binary)
 
-// Bytes
-binary.byte(0) as Int     // 222
-binary.bytes(0, 2) as Int // 57005
+let bit0 = binary.next(bits: 1)
+print(bit0) // 1
+
+let bit1 = binary.next(bits: 1)
+print(bit1) // 1
+
+let bit2 = binary.next(bits: 1)
+print(bit2) // 0
+
+let bit3 = binary.next(bits: 1)
+print(bit3) // 1
 ```
 
-## Todos
+```swift
+// Read next 4 bits, 2 x 2 bits
+let bits4And5 = binary.next(bits: 2)
+print(bits4And5) // 3
 
-- [ ] Endianness flag
-- [ ] Tests
-- [ ] Documentation
+let bits6And7 = binary.next(bits: 2)
+print(bits6And7) // 2
+```
+
+```swift
+// Set reading offset (cursor) back to starting position
+binary.readingOffset = 0
+```
+
+```swift
+// Read first byte
+let nextTwoBytes = binary.next(bytes: 2)
+print(nextTwoBytes) // [222, 173]
+```
+
+```swift
+// Read bit by position
+let bit5 = binary.bit(5)
+print(bit5) // 1
+```
+
+```swift
+// Read byte by position
+let byte1 = binary.byte(1)
+print(byte1) // 173
+```
+
+```swift
+// Read first 16 bits as Integer
+let first16Bits = binary.bits(0, 16)        // 57005
+print(first16Bits)
+```
+
+```swift
+// Read first two bytes as Integer
+let firstTwoBytes = binary.bytes(0, 2) as Int
+print(firstTwoBytes) // 57005
+```
 
 ## License
 
