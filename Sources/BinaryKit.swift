@@ -1,7 +1,8 @@
 import Foundation
 
 public struct Binary {
-    private let bytes: [UInt8]
+    public let bytes: [UInt8]
+    var readingOffset: Int = 0
     
     public init(bytes: [UInt8]) {
         self.bytes = bytes
@@ -20,10 +21,6 @@ public struct Binary {
         let bitPosition     = 7 - (position % byteSize)
         let byte            = self.byte(bytePosition)
         return (byte >> bitPosition) & 0x01
-    }
-    
-    public func bit(position: Int) -> Bit {
-        return self.bit(position) == 1 ? Bit.One : Bit.Zero
     }
     
     public func bits(range: Range<Int>) -> Int {
@@ -48,4 +45,34 @@ public struct Binary {
         return bits(start*8, length*8)
     }
     
+    public func bitsWithInternalOffsetAvailable(length: Int) -> Bool {
+        return (self.bytes.count * 8) >= (self.readingOffset + length)
+    }
+    
+    public mutating func next(bits length: Int) -> Int {
+        if self.bitsWithInternalOffsetAvailable(length) {
+            let returnValue = self.bits(self.readingOffset, length)
+            self.readingOffset = self.readingOffset + length
+            return returnValue
+        } else {
+            fatalError("Couldn't extract Bits.")
+        }
+    }
+    
+    public func bytesWithInternalOffsetAvailable(length: Int) -> Bool {
+        let availableBits = self.bytes.count * 8
+        let requestedBits = readingOffset + (length * 8)
+        let possible      = availableBits >= requestedBits
+        return possible
+    }
+    
+    public mutating func next(bytes length: Int) -> [UInt8] {
+        if bytesWithInternalOffsetAvailable(length) {
+            let returnValue = self.bytes[(self.readingOffset / 8)..<((self.readingOffset / 8) + length)]
+            self.readingOffset = self.readingOffset + (length * 8)
+            return Array(returnValue)
+        } else {
+            fatalError("Couldn't extract Bytes.")
+        }
+    }
 }
