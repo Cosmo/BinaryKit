@@ -68,8 +68,8 @@ print(byte1) // 173
 
 ```swift
 // Read first 16 bits as Integer
-let first16Bits = binary.bits(0, 16)        // 57005
-print(first16Bits)
+let first16Bits = binary.bits(0, 16)
+print(first16Bits) // 57005
 ```
 
 ```swift
