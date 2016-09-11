@@ -49,7 +49,7 @@ binary.readingOffset = 0
 ```
 
 ```swift
-// Read first byte
+// Read first two bytes
 let nextTwoBytes = binary.next(bytes: 2)
 print(nextTwoBytes) // [222, 173]
 ```

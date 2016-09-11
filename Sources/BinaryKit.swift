@@ -2,20 +2,20 @@ import Foundation
 
 public struct Binary {
     public let bytes: [UInt8]
-    var readingOffset: Int = 0
+    public var readingOffset: Int = 0
     
     public init(bytes: [UInt8]) {
         self.bytes = bytes
     }
     
-    public init(data: NSData) {
-        let bytesLength = data.length
-        var bytesArray  = [UInt8](count: bytesLength, repeatedValue: 0)
-        data.getBytes(&bytesArray, length: bytesLength)
+    public init(data: Data) {
+        let bytesLength = data.count
+        var bytesArray  = [UInt8](repeating: 0, count: bytesLength)
+        (data as NSData).getBytes(&bytesArray, length: bytesLength)
         self.bytes      = bytesArray
     }
     
-    public func bit(position: Int) -> Int {
+    public func bit(_ position: Int) -> Int {
         let byteSize        = 8
         let bytePosition    = position / byteSize
         let bitPosition     = 7 - (position % byteSize)
@@ -23,29 +23,35 @@ public struct Binary {
         return (byte >> bitPosition) & 0x01
     }
     
-    public func bits(range: Range<Int>) -> Int {
-        return range.reverse().enumerate().reduce(0) {
-            $0 + (bit($1.element) << $1.index)
+    public func bits(_ range: Range<Int>) -> Int {
+        var positions = [Int]()
+        
+        for position in range.lowerBound..<range.upperBound {
+            positions.append(position)
+        }
+        
+        return positions.reversed().enumerated().reduce(0) {
+            $0 + (bit($1.element) << $1.offset)
         }
     }
     
-    public func bits(start: Int, _ length: Int) -> Int {
+    public func bits(_ start: Int, _ length: Int) -> Int {
         return self.bits(start..<(start + length))
     }
     
-    public func byte(position: Int) -> Int {
+    public func byte(_ position: Int) -> Int {
         return Int(self.bytes[position])
     }
     
-    public func bytes(start: Int, _ length: Int) -> [UInt8] {
+    public func bytes(_ start: Int, _ length: Int) -> [UInt8] {
         return Array(self.bytes[start..<start+length])
     }
     
-    public func bytes(start: Int, _ length: Int) -> Int {
+    public func bytes(_ start: Int, _ length: Int) -> Int {
         return bits(start*8, length*8)
     }
     
-    public func bitsWithInternalOffsetAvailable(length: Int) -> Bool {
+    public func bitsWithInternalOffsetAvailable(_ length: Int) -> Bool {
         return (self.bytes.count * 8) >= (self.readingOffset + length)
     }
     
@@ -59,7 +65,7 @@ public struct Binary {
         }
     }
     
-    public func bytesWithInternalOffsetAvailable(length: Int) -> Bool {
+    public func bytesWithInternalOffsetAvailable(_ length: Int) -> Bool {
         let availableBits = self.bytes.count * 8
         let requestedBits = readingOffset + (length * 8)
         let possible      = availableBits >= requestedBits
