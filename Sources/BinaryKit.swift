@@ -2,7 +2,7 @@ import Foundation
 
 public struct Binary {
     public let bytes: [UInt8]
-    var readingOffset: Int = 0
+    public var readingOffset: Int = 0
     
     public init(bytes: [UInt8]) {
         self.bytes = bytes
