@@ -1,0 +1,16 @@
+PODS:
+  - BinaryKit (0.1.0)
+
+DEPENDENCIES:
+  - BinaryKit (from `./`)
+
+EXTERNAL SOURCES:
+  BinaryKit:
+    :path: ./
+
+SPEC CHECKSUMS:
+  BinaryKit: b87e9c0de0b09a0ef703e44441090ecd3fd1d6ea
+
+PODFILE CHECKSUM: 953dcc6ecf5cec6960e598ee0cda38478a94d59c
+
+COCOAPODS: 1.3.1
