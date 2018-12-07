@@ -1,6 +1,8 @@
 <img src="https://raw.githubusercontent.com/Cosmo/BinaryKit/master/BinaryKitLogo.png" alt=" text" width="100" />
 
 # BinaryKit
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCosmo%2FBinaryKit.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2FCosmo%2FBinaryKit?ref=badge_shield)
+
 Access bits and bytes directly in Swift.
 
 ## Usage
@@ -81,3 +83,6 @@ print(firstTwoBytes) // 57005
 ## License
 
 BinaryKit is released under the [MIT License](http://www.opensource.org/licenses/MIT).
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCosmo%2FBinaryKit.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FCosmo%2FBinaryKit?ref=badge_large)
