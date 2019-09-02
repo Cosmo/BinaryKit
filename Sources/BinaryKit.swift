@@ -74,11 +74,15 @@ public struct Binary {
     
     public mutating func next(bytes length: Int) -> [UInt8] {
         if bytesWithInternalOffsetAvailable(length) {
-            let returnValue = self.bytes[(self.readingOffset / 8)..<((self.readingOffset / 8) + length)]
+            var arr = [UInt8]()
+            for _ in 0..<length {
+                arr.append(UInt8(self.next(bits: 8)))
+            }
             self.readingOffset = self.readingOffset + (length * 8)
-            return Array(returnValue)
+            return arr
         } else {
             fatalError("Couldn't extract Bytes.")
         }
     }
 }
+
