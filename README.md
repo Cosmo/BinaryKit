@@ -1,81 +1,69 @@
-<img src="https://raw.githubusercontent.com/Cosmo/BinaryKit/master/BinaryKitLogo.png" alt=" text" width="100" />
-
 # BinaryKit
-Access bits and bytes directly in Swift.
 
-## Usage
+BinaryKit helps you to break down binary data into bits and bytes and easily access specific parts.
 
-Initialize from `NSData`
+## Accessing Bytes
+
+By using any `read*` method (`readByte()`, `readBytes(quantitiy:)`, `readBit()`, …), BinaryKit will increment an internal cursor (or reading offset) to the end of the requested bit or byte, so the next `read*` method can continue from there.
+
+Any `get*` method (`getByte(index:)`, `getBytes(range:)`, `getBit(index:)`, …) will give access to binary data at any given location — without incrementing the internal cursor.
+
+Here are the methods you can call:
+
 ```swift
-let data   = NSData(...)
-let binary = Binary(data: data)
+let binary = Binary(bytes: [0xDE, 0xAD, 0xBE, 0xEF, …])
+
+// Reads exactly 1 byte and
+// increments the cursor by 1 byte 
+try binary.readByte()
+
+// Reads the next 4 bytes and
+// increments the cursor by 4 bytes
+try binary.readBytes(quantitiy: 4)
+
+// Reads the next 1 bit and
+// increments the cursor by 1 bit
+try binary.readBit()
+
+// Reads the next 4 bits and
+// increments the cursor by 4 bits
+try binary.readBits(quantitiy: 4)
 ```
 
-or `[UInt8]` bytes array
+## Example
+
+This shows how easy it is, to break down an [IPv4 header](https://en.wikipedia.org/wiki/IPv4#Header).
+
 ```swift
-let binary = Binary(bytes: [0xDE, 0xAD]) // 1101 1110 1010 1101
+let binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
+                              | | | | | | | | 
+                              | | | | | | | try binary.bit()    // 0
+                              | | | | | | try binary.bit()      // 0
+                              | | | | | try binary.bit()        // 1
+                              | | | | try binary.bit()          // 1
+                              | | | try binary.bit()            // 1
+                              | | try binary.bit()              // 0
+                              | try binary.bit()                // 1
+                              try binary.bit()                  // 1
 ```
 
-```swift
-// Read first 4 bits, bit by bit
-var binary = Binary(bytes: [0xDE, 0xAD])
-print(binary)
-
-let bit0 = binary.next(bits: 1)
-print(bit0) // 1
-
-let bit1 = binary.next(bits: 1)
-print(bit1) // 1
-
-let bit2 = binary.next(bits: 1)
-print(bit2) // 0
-
-let bit3 = binary.next(bits: 1)
-print(bit3) // 1
-```
 
 ```swift
-// Read next 4 bits, 2 x 2 bits
-let bits4And5 = binary.next(bits: 2)
-print(bits4And5) // 3
-
-let bits6And7 = binary.next(bits: 2)
-print(bits6And7) // 2
-```
-
-```swift
-// Set reading offset (cursor) back to starting position
-binary.readingOffset = 0
-```
-
-```swift
-// Read first two bytes
-let nextTwoBytes = binary.next(bytes: 2)
-print(nextTwoBytes) // [222, 173]
-```
-
-```swift
-// Read bit by position
-let bit5 = binary.bit(5)
-print(bit5) // 1
-```
-
-```swift
-// Read byte by position
-let byte1 = binary.byte(1)
-print(byte1) // 173
-```
-
-```swift
-// Read first 16 bits as Integer
-let first16Bits = binary.bits(0, 16)
-print(first16Bits) // 57005
-```
-
-```swift
-// Read first two bytes as Integer
-let firstTwoBytes = binary.bytes(0, 2) as Int
-print(firstTwoBytes) // 57005
+let binary = Binary(bytes: [0x1B, 0x44, …])
+let version                         = try binary.readBits(4)
+let internetHeaderLength            = try binary.readBits(4)
+let differentiatedServicesCodePoint = try binary.readBits(6)
+let explicitCongestionNotification  = try binary.readBits(2)
+let totalLength                     = try binary.readBytes(2)
+let identification                  = try binary.readBytes(2)
+let flags                           = try binary.readBits(4)
+let fragmentOffset                  = try binary.readBits(12)
+let timeToLive                      = try binary.readByte()
+let protocolNumber                  = try binary.readByte()
+let headerChecksum                  = try binary.readBytes(2)
+let sourceIpAddress                 = try binary.readBytes(4)
+let destinationIpAddress            = try binary.readBytes(4)
+...
 ```
 
 ## License
