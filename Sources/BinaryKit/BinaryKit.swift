@@ -5,18 +5,18 @@ enum BinError: Error {
     case notString
 }
 
-struct Binary {
+public struct Binary {
     private var bitCursor: Int
     var bytesStore: [UInt8]
     private let byteSize = 8
     
-    init(bytes: [UInt8]) {
+    public init(bytes: [UInt8]) {
         self.bitCursor = 0
         self.bytesStore = bytes
     }
     
     /// Initialize with a `String` of hexadecimal values.
-    init?(hexString: String) {
+    public init?(hexString: String) {
         let bytes = hexString.chunked(by: 2).compactMap{ UInt8($0, radix: 16) }
         guard hexString.count == bytes.count * 2 else {
             return nil
@@ -37,14 +37,14 @@ struct Binary {
     }
     
     /// Sets the reading cursor back to its initial value.
-    mutating func resetCursor() {
+    public mutating func resetCursor() {
         self.bitCursor = 0
     }
     
     // MARK: - Bit
     
     /// Returns the binary value `0` or `1` of the given position.
-    func getBit(index: Int) throws -> UInt8 {
+    public func getBit(index: Int) throws -> UInt8 {
         guard (0..<(bytesStore.count)).contains(index / byteSize) else {
             throw BinError.outOfBounds
         }
@@ -54,7 +54,7 @@ struct Binary {
     }
     
     /// Returns the `Int`-value of the given range.
-    mutating func getBits(range: Range<Int>) throws -> Int {
+    public mutating func getBits(range: Range<Int>) throws -> Int {
         guard (0...(bytesStore.count * byteSize)).contains(range.endIndex) else {
             throw BinError.outOfBounds
         }
@@ -65,14 +65,14 @@ struct Binary {
     
     /// Returns the binary value `0` or `1` of the given position and
     /// increments the reading cursor by one bit.
-    mutating func readBit() throws -> UInt8 {
+    public mutating func readBit() throws -> UInt8 {
         defer { bitCursor = incrementedCursorBy(bits: 1) }
         return try getBit(index: bitCursor)
     }
     
     /// Returns the `Int`-value of the next n-bits (`quantitiy`)
     /// and increments the reading cursor by n-bits.
-    mutating func readBits(quantitiy: Int) throws -> Int {
+    public mutating func readBits(quantitiy: Int) throws -> Int {
         guard (0...(bytesStore.count * byteSize)).contains(bitCursor + quantitiy) else {
             throw BinError.outOfBounds
         }
@@ -85,7 +85,7 @@ struct Binary {
     // MARK: - Byte
     
     /// Returns the `UInt8`-value of the given `index`.
-    func getByte(index: Int) throws -> UInt8 {
+    public func getByte(index: Int) throws -> UInt8 {
         /// Check if `index` is within bounds of `bytes`
         guard (0..<(bytesStore.count)).contains(index) else {
             throw BinError.outOfBounds
@@ -94,7 +94,7 @@ struct Binary {
     }
     
     /// Returns an `[UInt8]` of the given `range`.
-    func getBytes(range: Range<Int>) throws -> [UInt8] {
+    public func getBytes(range: Range<Int>) throws -> [UInt8] {
         guard (0...(bytesStore.count)).contains(range.endIndex) else {
             throw BinError.outOfBounds
         }
@@ -102,7 +102,7 @@ struct Binary {
     }
     
     /// Returns the `UInt8`-value of the next byte and increments the reading cursor.
-    mutating func readByte() throws -> UInt8 {
+    public mutating func readByte() throws -> UInt8 {
         let result = try getByte(index: bitCursor / byteSize)
         bitCursor = incrementedCursorBy(bytes: 1)
         return result
@@ -110,26 +110,25 @@ struct Binary {
     
     /// Returns an `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
-    mutating func readBytes(quantitiy: Int) throws -> [UInt8] {
+    public mutating func readBytes(quantitiy: Int) throws -> [UInt8] {
         let byteCursor = bitCursor / byteSize
         defer { bitCursor = incrementedCursorBy(bytes: quantitiy) }
         return try getBytes(range: byteCursor..<(byteCursor + quantitiy))
     }
     
     // MARK: - String
-    
-    mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .utf8) throws -> String {
+    public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .utf8) throws -> String {
         guard let result = String(bytes: try self.readBytes(quantitiy: quantitiy), encoding: encoding) else {
             throw BinError.notString
         }
         return result
     }
     
-    mutating func getCharacter() throws -> Character {
+    public mutating func getCharacter() throws -> Character {
         return Character(UnicodeScalar(try readByte()))
     }
     
-    mutating func readBool() throws -> Bool {
+    public mutating func readBool() throws -> Bool {
         return try readBit() == 1
     }
 }
