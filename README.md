@@ -11,43 +11,45 @@ Any `get*` method (`getByte(index:)`, `getBytes(range:)`, `getBit(index:)`, …)
 Here are the methods you can call:
 
 ```swift
+let binary = Binary(bytes: [0xDE, 0xAD, 0xBE, 0xEF, …])
+
 // Reads exactly 1 byte and
 // increments the cursor by 1 byte 
-try readByte()
+try binary.readByte()
 
 // Reads the next 4 bytes and
 // increments the cursor by 4 bytes
-try readBytes(quantitiy: 4)
+try binary.readBytes(quantitiy: 4)
 
 // Reads the next 1 bit and
 // increments the cursor by 1 bit
-try readBit()
+try binary.readBit()
 
 // Reads the next 4 bits and
 // increments the cursor by 4 bits
-try readBits(quantitiy: 4)
+try binary.readBits(quantitiy: 4)
 ```
 
 ## Example
 
-This shows how easy it is, to break down an (IPv4 header)[https://en.wikipedia.org/wiki/IPv4#Header].
+This shows how easy it is, to break down an [IPv4 header](https://en.wikipedia.org/wiki/IPv4#Header).
 
 ```swift
 let binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
-                                    | | | | | 
-                                    | | | | try binary.bit()    // 0
-                                    | | | try binary.bit()      // 0
-                                    | | try binary.bit()        // 1
-                                    | try binary.bit()          // 1
-                                    try binary.bit()            // 1
-
-
-```                         
+                              | | | | | | | | 
+                              | | | | | | | try binary.bit()    // 0
+                              | | | | | | try binary.bit()      // 0
+                              | | | | | try binary.bit()        // 1
+                              | | | | try binary.bit()          // 1
+                              | | | try binary.bit()            // 1
+                              | | try binary.bit()              // 0
+                              | try binary.bit()                // 1
+                              try binary.bit()                  // 1
+```
 
 
 ```swift
 let binary = Binary(bytes: [0x1B, 0x44, …])
-
 let version                         = try binary.readBits(4)
 let internetHeaderLength            = try binary.readBits(4)
 let differentiatedServicesCodePoint = try binary.readBits(6)
@@ -57,13 +59,12 @@ let identification                  = try binary.readBytes(2)
 let flags                           = try binary.readBits(4)
 let fragmentOffset                  = try binary.readBits(12)
 let timeToLive                      = try binary.readByte()
-let protocol                        = try binary.readByte()
+let protocolNumber                  = try binary.readByte()
 let headerChecksum                  = try binary.readBytes(2)
 let sourceIpAddress                 = try binary.readBytes(4)
 let destinationIpAddress            = try binary.readBytes(4)
 ...
 ```
-
 
 ## License
 
