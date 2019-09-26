@@ -2,49 +2,6 @@ import XCTest
 @testable import BinaryKit
 
 final class BinaryKitTests: XCTestCase {
-    // MARK: - Byte
-    
-    func testByte() {
-        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
-        
-        XCTAssertEqual(try bin.readByte(), 173)
-        XCTAssertEqual(try bin.readByte(), 175)
-        XCTAssertThrowsError(try bin.readByte())
-        bin.resetCursor()
-        XCTAssertEqual(try bin.readByte(), 173)
-        XCTAssertEqual(try bin.readByte(), 175)
-    }
-    
-    func testByteIndex() {
-        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        let bin = Binary(bytes: bytes)
-        
-        XCTAssertThrowsError(try bin.getByte(index: -1))
-        XCTAssertEqual(try bin.getByte(index: 0), 173)
-        XCTAssertEqual(try bin.getByte(index: 1), 175)
-        XCTAssertThrowsError(try bin.getByte(index: 2))
-    }
-    
-    func testBytes() {
-        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
-        var bin = Binary(bytes: bytes)
-        
-        XCTAssertEqual(try bin.readBytes(quantitiy: 1), [173])
-        XCTAssertEqual(try bin.readBytes(quantitiy: 2), [175, 141])
-        XCTAssertThrowsError(try bin.readBytes(quantitiy: 3))
-        bin.resetCursor()
-        XCTAssertEqual(try bin.readBytes(quantitiy: 1), [173])
-    }
-    
-    func testBytesRange() {
-        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        let bin = Binary(bytes: bytes)
-        
-        XCTAssertEqual(try bin.getBytes(range: 0..<2), [173, 175])
-        XCTAssertThrowsError(try bin.getBytes(range: 2..<3))
-    }
-    
     // MARK: - Bit
     
     func testBit() {
@@ -109,6 +66,49 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertThrowsError(try bin.getBits(range: 16..<17))
     }
     
+    // MARK: - Byte
+    
+    func testByte() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
+        var bin = Binary(bytes: bytes)
+        
+        XCTAssertEqual(try bin.readByte(), 173)
+        XCTAssertEqual(try bin.readByte(), 175)
+        XCTAssertThrowsError(try bin.readByte())
+        bin.resetCursor()
+        XCTAssertEqual(try bin.readByte(), 173)
+        XCTAssertEqual(try bin.readByte(), 175)
+    }
+    
+    func testByteIndex() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
+        let bin = Binary(bytes: bytes)
+        
+        XCTAssertThrowsError(try bin.getByte(index: -1))
+        XCTAssertEqual(try bin.getByte(index: 0), 173)
+        XCTAssertEqual(try bin.getByte(index: 1), 175)
+        XCTAssertThrowsError(try bin.getByte(index: 2))
+    }
+    
+    func testBytes() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
+        var bin = Binary(bytes: bytes)
+        
+        XCTAssertEqual(try bin.readBytes(quantitiy: 1), [173])
+        XCTAssertEqual(try bin.readBytes(quantitiy: 2), [175, 141])
+        XCTAssertThrowsError(try bin.readBytes(quantitiy: 3))
+        bin.resetCursor()
+        XCTAssertEqual(try bin.readBytes(quantitiy: 1), [173])
+    }
+    
+    func testBytesRange() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
+        let bin = Binary(bytes: bytes)
+        
+        XCTAssertEqual(try bin.getBytes(range: 0..<2), [173, 175])
+        XCTAssertThrowsError(try bin.getBytes(range: 2..<3))
+    }
+    
     // MARK: - Init
     
     func testHexInit() {
@@ -125,26 +125,62 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertThrowsError(try bin.readByte())
     }
     
-    // MARK: - Other Readers
+    // MARK: - Nibble
     
-    func testOtherReaders() {
-        let bytes: [UInt8] = [104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33]
+    func testNibble() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
+        var bin = Binary(bytes: bytes)
+        
+        XCTAssertEqual(try bin.readNibble(), 10)
+        XCTAssertEqual(try bin.readNibble(), 13)
+    }
+    
+    // MARK: - String and Character
+    
+    func testStringAndCharacter() {
+        let bytes: [UInt8] = [104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33, 0, 255, 0, 100, 0, 9]
         var bin = Binary(bytes: bytes)
         XCTAssertEqual(try bin.readString(quantitiyOfBytes: 12), "hello, world")
+        XCTAssertEqual(try bin.readCharacter(), "!")
+        XCTAssertThrowsError(try bin.readString(quantitiyOfBytes: 6, encoding: .nonLossyASCII))
+    }
+    
+    // MARK: - Bool
+    
+    func testBool() {
+        let bytes: [UInt8] = [0b1101_0101]
+        var bin = Binary(bytes: bytes)
+        XCTAssertEqual(try bin.readBool(), true)
+        XCTAssertEqual(try bin.readBool(), true)
+        XCTAssertEqual(try bin.readBool(), false)
+        XCTAssertEqual(try bin.readBool(), true)
+        XCTAssertEqual(try bin.readBool(), false)
+    }
+    
+    // MARK: - Finders
+    
+    func testFinders() {
+        let bytes: [UInt8] = [104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33]
+        let bin = Binary(bytes: bytes)
+        XCTAssertEqual(bin.indices(of: [111, 44]), [4])
+        XCTAssertEqual(bin.indices(of: "l"), [2, 3, 10])
+        XCTAssertEqual(bin.indices(of: "wo"), [7])
     }
     
     // MARK: -
 
     static var allTests = [
-        ("testByte", testByte),
-        ("testByteIndex", testByteIndex),
-        ("testBytes", testBytes),
-        ("testBytesRange", testBytesRange),
         ("testBitIndex", testBitIndex),
         ("testBit", testBit),
         ("testBits", testBits),
         ("testBitsRange", testBitsRange),
+        ("testByte", testByte),
+        ("testByteIndex", testByteIndex),
+        ("testBytes", testBytes),
+        ("testBytesRange", testBytesRange),
         ("testHexInit", testHexInit),
-        ("testOtherReaders", testOtherReaders),
+        ("testNibble", testNibble),
+        ("testStringAndCharacter", testStringAndCharacter),
+        ("testFinders", testFinders),
     ]
 }
