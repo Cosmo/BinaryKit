@@ -6,7 +6,11 @@ enum BinError: Error {
 }
 
 public struct Binary {
+    /// Stores a reading cursor in bits.
+    /// All methods starting with `read` will increment the value of `bitCursor`.
     private var bitCursor: Int
+    
+    /// Stores the binary content.
     var bytesStore: [UInt8]
     
     private let byteSize = UInt8.bitWidth
