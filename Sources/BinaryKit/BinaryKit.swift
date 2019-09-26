@@ -58,7 +58,7 @@ public struct Binary {
     
     // MARK: - Bit
     
-    /// Returns the binary value `0` or `1` of the given position.
+    /// Returns an `UInt8` with the value of 0 or 1 of the given position.
     public func getBit(index: Int) throws -> UInt8 {
         guard (0..<(bytesStore.count)).contains(index / byteSize) else {
             throw BinError.outOfBounds
@@ -78,8 +78,8 @@ public struct Binary {
         }
     }
     
-    /// Returns the binary value `0` or `1` of the given position and
-    /// increments the reading cursor by one bit.
+    /// Returns an `UInt8` with the value of 0 or 1 of the given
+    /// position and increments the reading cursor by one bit.
     public mutating func readBit() throws -> UInt8 {
         defer { bitCursor = incrementedCursorBy(bits: 1) }
         return try getBit(index: bitCursor)
