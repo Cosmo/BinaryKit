@@ -153,4 +153,18 @@ public struct Binary {
     public mutating func readNibble() throws -> UInt8 {
         return UInt8(try readBits(quantitiy: 4))
     }
+    
+    // MARK: - Find
+    
+    func indices(of sequence: [UInt8]) -> [Int] {
+        let size = sequence.count
+        return bytesStore.indices.dropLast(size-1).filter {
+            bytesStore[$0..<$0+size].elementsEqual(sequence)
+        }
+    }
+    
+    func indices(of string: String) -> [Int] {
+        let sequence = [UInt8](string.utf8)
+        return indices(of: sequence)
+    }
 }
