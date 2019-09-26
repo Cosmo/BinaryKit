@@ -124,7 +124,8 @@ public struct Binary {
         return result
     }
     
-    public mutating func getCharacter() throws -> Character {
+    // MARK: - Character
+    public mutating func readCharacter() throws -> Character {
         return Character(UnicodeScalar(try readByte()))
     }
     
