@@ -41,6 +41,16 @@ public struct Binary {
         return bitCursor + (bytes * byteSize)
     }
     
+    /// Increments the `bitCursor`-value by the given `bits`.
+    private mutating func incrementCursorBy(bits: Int) {
+        bitCursor = incrementedCursorBy(bits: bits)
+    }
+    
+    /// Increments the `bitCursor`-value by the given `bytes`.
+    private mutating func incrementCursorBy(bytes: Int) {
+        bitCursor = incrementedCursorBy(bytes: bytes)
+    }
+
     /// Sets the reading cursor back to its initial value.
     public mutating func resetCursor() {
         self.bitCursor = 0
