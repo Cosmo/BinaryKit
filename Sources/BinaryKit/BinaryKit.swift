@@ -8,7 +8,8 @@ enum BinError: Error {
 public struct Binary {
     private var bitCursor: Int
     var bytesStore: [UInt8]
-    private let byteSize = 8
+    
+    private let byteSize = UInt8.bitWidth
     
     public init(bytes: [UInt8]) {
         self.bitCursor = 0
