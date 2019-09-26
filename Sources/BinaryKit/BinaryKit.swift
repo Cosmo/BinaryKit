@@ -149,4 +149,8 @@ public struct Binary {
     public mutating func readBool() throws -> Bool {
         return try readBit() == 1
     }
+    
+    public mutating func readNibble() throws -> UInt8 {
+        return UInt8(try readBits(quantitiy: 4))
+    }
 }
