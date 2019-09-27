@@ -13,8 +13,10 @@ public struct Binary {
     /// Stores the binary content.
     var bytesStore: [UInt8]
     
+    /// Constant with number of bits in a byte (8)
     private let byteSize = UInt8.bitWidth
     
+    /// Initialize a new `Binary`.
     public init(bytes: [UInt8]) {
         self.bitCursor = 0
         self.bytesStore = bytes
@@ -56,7 +58,10 @@ public struct Binary {
         self.bitCursor = 0
     }
     
-    // MARK: - Bit
+    // MARK: - Get
+    
+    /// All `get` methods give access to binary data at any given
+    /// location — without incrementing the internal cursor.
     
     /// Returns an `UInt8` with the value of 0 or 1 of the given position.
     public func getBit(index: Int) throws -> UInt8 {
@@ -77,6 +82,30 @@ public struct Binary {
             $0 + Int(try getBit(index: $1.element) << $1.offset)
         }
     }
+    
+    /// Returns the `UInt8`-value of the given `index`.
+    public func getByte(index: Int) throws -> UInt8 {
+        /// Check if `index` is within bounds of `bytes`
+        guard (0..<(bytesStore.count)).contains(index) else {
+            throw BinError.outOfBounds
+        }
+        return bytesStore[index]
+    }
+    
+    /// Returns an `[UInt8]` of the given `range`.
+    public func getBytes(range: Range<Int>) throws -> [UInt8] {
+        guard (0...(bytesStore.count)).contains(range.endIndex) else {
+            throw BinError.outOfBounds
+        }
+        return Array(bytesStore[range])
+    }
+    
+    // MARK: - Read
+    
+    /// All `read*` methods return the next requested binary data
+    /// and increment an internal cursor (or reading offset) to
+    /// the end of the requested data, so the
+    /// next `read*`-method can continue from there.
     
     /// Returns an `UInt8` with the value of 0 or 1 of the given
     /// position and increments the reading cursor by one bit.
@@ -99,33 +128,15 @@ public struct Binary {
         return result
     }
     
-    // MARK: - Byte
-    
-    /// Returns the `UInt8`-value of the given `index`.
-    public func getByte(index: Int) throws -> UInt8 {
-        /// Check if `index` is within bounds of `bytes`
-        guard (0..<(bytesStore.count)).contains(index) else {
-            throw BinError.outOfBounds
-        }
-        return bytesStore[index]
-    }
-    
-    /// Returns an `[UInt8]` of the given `range`.
-    public func getBytes(range: Range<Int>) throws -> [UInt8] {
-        guard (0...(bytesStore.count)).contains(range.endIndex) else {
-            throw BinError.outOfBounds
-        }
-        return Array(bytesStore[range])
-    }
-    
-    /// Returns the `UInt8`-value of the next byte and increments the reading cursor.
+    /// Returns the `UInt8`-value of the next byte and
+    /// increments the reading cursor by 1 byte.
     public mutating func readByte() throws -> UInt8 {
         let result = try getByte(index: bitCursor / byteSize)
         incrementCursorBy(bytes: 1)
         return result
     }
     
-    /// Returns an `[UInt8]` of the next n-bytes (`quantitiy`) and
+    /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
     public mutating func readBytes(quantitiy: Int) throws -> [UInt8] {
         let byteCursor = bitCursor / byteSize
@@ -133,8 +144,8 @@ public struct Binary {
         return try getBytes(range: byteCursor..<(byteCursor + quantitiy))
     }
     
-    // MARK: - Read Other
-    
+    /// Returns a `String` of the next n-bytes (`quantitiy`) and
+    /// increments the reading cursor by n-bytes.
     public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .utf8) throws -> String {
         guard let result = String(bytes: try self.readBytes(quantitiy: quantitiy), encoding: encoding) else {
             throw BinError.notString
@@ -142,27 +153,35 @@ public struct Binary {
         return result
     }
     
+    /// Returns the next byte as `Character` and
+    /// increments the reading cursor by 1 byte.
     public mutating func readCharacter() throws -> Character {
         return Character(UnicodeScalar(try readByte()))
     }
     
+    /// Returns the `Bool`-value of the next bit and
+    /// increments the reading cursor by 1 bit.
     public mutating func readBool() throws -> Bool {
         return try readBit() == 1
     }
     
+    /// Returns the `UInt8`-value of the next 4 bit and
+    /// increments the reading cursor by 4 bits.
     public mutating func readNibble() throws -> UInt8 {
         return UInt8(try readBits(quantitiy: 4))
     }
     
     // MARK: - Find
     
+    /// Returns indices of given `[UInt8]`.
     func indices(of sequence: [UInt8]) -> [Int] {
         let size = sequence.count
-        return bytesStore.indices.dropLast(size-1).filter {
-            bytesStore[$0..<$0+size].elementsEqual(sequence)
+        return bytesStore.indices.dropLast(size - 1).filter {
+            bytesStore[$0..<($0 + size)].elementsEqual(sequence)
         }
     }
     
+    /// Returns indices of given `String`.
     func indices(of string: String) -> [Int] {
         let sequence = [UInt8](string.utf8)
         return indices(of: sequence)
