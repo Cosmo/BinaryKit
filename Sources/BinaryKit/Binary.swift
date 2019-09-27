@@ -1,10 +1,5 @@
 import Foundation
 
-enum BinError: Error {
-    case outOfBounds
-    case notString
-}
-
 public struct Binary {
     /// Stores a reading cursor in bits.
     /// All methods starting with `read` will increment the value of `bitCursor`.
@@ -66,7 +61,7 @@ public struct Binary {
     /// Returns an `UInt8` with the value of 0 or 1 of the given position.
     public func getBit(index: Int) throws -> UInt8 {
         guard (0..<(bytesStore.count)).contains(index / byteSize) else {
-            throw BinError.outOfBounds
+            throw BinaryError.outOfBounds
         }
         let byteCursor = index / byteSize
         let bitindex = 7 - (index % byteSize)
@@ -76,7 +71,7 @@ public struct Binary {
     /// Returns the `Int`-value of the given range.
     public mutating func getBits(range: Range<Int>) throws -> Int {
         guard (0...(bytesStore.count * byteSize)).contains(range.endIndex) else {
-            throw BinError.outOfBounds
+            throw BinaryError.outOfBounds
         }
         return try range.reversed().enumerated().reduce(0) {
             $0 + Int(try getBit(index: $1.element) << $1.offset)
@@ -87,7 +82,7 @@ public struct Binary {
     public func getByte(index: Int) throws -> UInt8 {
         /// Check if `index` is within bounds of `bytes`
         guard (0..<(bytesStore.count)).contains(index) else {
-            throw BinError.outOfBounds
+            throw BinaryError.outOfBounds
         }
         return bytesStore[index]
     }
@@ -95,7 +90,7 @@ public struct Binary {
     /// Returns an `[UInt8]` of the given `range`.
     public func getBytes(range: Range<Int>) throws -> [UInt8] {
         guard (0...(bytesStore.count)).contains(range.endIndex) else {
-            throw BinError.outOfBounds
+            throw BinaryError.outOfBounds
         }
         return Array(bytesStore[range])
     }
@@ -119,7 +114,7 @@ public struct Binary {
     /// and increments the reading cursor by n-bits.
     public mutating func readBits(quantitiy: Int) throws -> Int {
         guard (0...(bytesStore.count * byteSize)).contains(bitCursor + quantitiy) else {
-            throw BinError.outOfBounds
+            throw BinaryError.outOfBounds
         }
         let result = try (bitCursor..<(bitCursor + quantitiy)).reversed().enumerated().reduce(0) {
             $0 + Int(try getBit(index: $1.element) << $1.offset)
@@ -148,7 +143,7 @@ public struct Binary {
     /// increments the reading cursor by n-bytes.
     public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .utf8) throws -> String {
         guard let result = String(bytes: try self.readBytes(quantitiy: quantitiy), encoding: encoding) else {
-            throw BinError.notString
+            throw BinaryError.notString
         }
         return result
     }
