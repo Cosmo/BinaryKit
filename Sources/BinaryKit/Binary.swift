@@ -19,8 +19,10 @@ public struct Binary {
     
     /// Initialize with a `String` of hexadecimal values.
     public init?(hexString: String) {
-        let bytes = hexString.chunked(by: 2).compactMap{ UInt8($0, radix: 16) }
-        guard hexString.count == bytes.count * 2 else {
+        let charsPerByte = 2
+        let hexBase = 16
+        let bytes = hexString.chunked(by: charsPerByte).compactMap{ UInt8($0, radix: hexBase) }
+        guard hexString.count / charsPerByte == bytes.count else {
             return nil
         }
         self.init(bytes: bytes)
@@ -64,7 +66,8 @@ public struct Binary {
             throw BinaryError.outOfBounds
         }
         let byteCursor = index / byteSize
-        let bitindex = 7 - (index % byteSize)
+        let byteLastBitIndex = 7
+        let bitindex = byteLastBitIndex - (index % byteSize)
         return (bytesStore[byteCursor] >> bitindex) & 1
     }
     
@@ -163,7 +166,8 @@ public struct Binary {
     /// Returns the `UInt8`-value of the next 4 bit and
     /// increments the reading cursor by 4 bits.
     public mutating func readNibble() throws -> UInt8 {
-        return UInt8(try readBits(quantitiy: 4))
+        let bitsPerNibble = 4
+        return UInt8(try readBits(quantitiy: bitsPerNibble))
     }
     
     // MARK: - Find
