@@ -32,8 +32,6 @@ try binary.readBits(quantitiy: 4)
 
 ## Example
 
-This shows how easy it is, to break down an [IPv4 header](https://en.wikipedia.org/wiki/IPv4#Header).
-
 ```swift
 let binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
                               | | | | | | | | 
@@ -47,6 +45,7 @@ let binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
                               try binary.bit()                  // 1
 ```
 
+This shows how easy it is, to break down an [IPv4 header](https://en.wikipedia.org/wiki/IPv4#Header).
 
 ```swift
 let binary = Binary(bytes: [0x1B, 0x44, …])
