@@ -11,7 +11,7 @@ Any `get*` method (`getByte(index:)`, `getBytes(range:)`, `getBit(index:)`, …)
 Here are the methods you can call:
 
 ```swift
-let binary = Binary(bytes: [0xDE, 0xAD, 0xBE, 0xEF, …])
+var binary = Binary(bytes: [0xDE, 0xAD, 0xBE, 0xEF, …])
 
 // Reads exactly 1 byte and
 // increments the cursor by 1 byte 
@@ -19,7 +19,7 @@ try binary.readByte()
 
 // Reads the next 4 bytes and
 // increments the cursor by 4 bytes
-try binary.readBytes(quantitiy: 4)
+try binary.readBytes(4)
 
 // Reads the next 1 bit and
 // increments the cursor by 1 bit
@@ -27,28 +27,28 @@ try binary.readBit()
 
 // Reads the next 4 bits and
 // increments the cursor by 4 bits
-try binary.readBits(quantitiy: 4)
+try binary.readBits(4)
 ```
 
 ### Example
 
 ```swift
-let binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
-                              | | | | | | | | 
-                              | | | | | | | try binary.bit()    // 0
-                              | | | | | | try binary.bit()      // 0
-                              | | | | | try binary.bit()        // 1
-                              | | | | try binary.bit()          // 1
-                              | | | try binary.bit()            // 1
-                              | | try binary.bit()              // 0
-                              | try binary.bit()                // 1
-                              try binary.bit()                  // 1
+var binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
+//                            | | | | | | | | 
+//                            | | | | | | | try binary.readBit()  // 0
+//                            | | | | | | try binary.readBit()    // 0
+//                            | | | | | try binary.readBit()      // 1
+//                            | | | | try binary.readBit()        // 1
+//                            | | | try binary.readBit()          // 1
+//                            | | try binary.readBit()            // 0
+//                            | try binary.readBit()              // 1
+//                            try binary.readBit()                // 1
 ```
 
 This shows how easy it is, to break down an [IPv4 header](https://en.wikipedia.org/wiki/IPv4#Header).
 
 ```swift
-let binary = Binary(bytes: [0x1B, 0x44, …])
+var binary = Binary(bytes: [0x1B, 0x44, …])
 let version                         = try binary.readBits(4)
 let internetHeaderLength            = try binary.readBits(4)
 let differentiatedServicesCodePoint = try binary.readBits(6)
@@ -70,7 +70,7 @@ let destinationIpAddress            = try binary.readBytes(4)
 Use the `write*` methods to store different types to binary. 
 
 ```swift
-let binary = Binary()
+var binary = Binary()
 binary.writeInt32(1_350_849_546)
 binary.writeString("Hello World!")
 binary.writeBytes([0xFF, 0xCC, 0x00, 0x01])
