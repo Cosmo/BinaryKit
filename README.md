@@ -1,8 +1,8 @@
 # BinaryKit
 
-BinaryKit helps you to break down binary data into bits and bytes and easily access specific parts.
+BinaryKit helps you to break down binary data into bits and bytes, easily access specific parts and write data to binary.
 
-## Accessing Bytes
+## Access Bytes
 
 By using any `read*` method (`readByte()`, `readBytes(quantitiy:)`, `readBit()`, …), BinaryKit will increment an internal cursor (or reading offset) to the end of the requested bit or byte, so the next `read*` method can continue from there.
 
@@ -30,7 +30,7 @@ try binary.readBit()
 try binary.readBits(quantitiy: 4)
 ```
 
-## Example
+### Example
 
 ```swift
 let binary = Binary(bytes: [0b1_1_0_1_1_1_0_0])
@@ -63,6 +63,18 @@ let headerChecksum                  = try binary.readBytes(2)
 let sourceIpAddress                 = try binary.readBytes(4)
 let destinationIpAddress            = try binary.readBytes(4)
 ...
+```
+
+## Store Bytes
+
+Use the `write*` methods to store different types to binary. 
+
+```swift
+let binary = Binary()
+binary.writeInt32(1_350_849_546)
+binary.writeString("Hello World!")
+binary.writeBytes([0xFF, 0xCC, 0x00, 0x01])
+binary.writeBool(true)
 ```
 
 ## Contact
