@@ -10,7 +10,7 @@ public struct Binary {
     private var writeBitCursor: Int
     
     /// Stores the binary content.
-    var bytesStore: [UInt8]
+    public var bytesStore: [UInt8]
     
     /// Constant with number of bits in a byte (8)
     private let byteSize = UInt8.bitWidth
@@ -126,7 +126,7 @@ public struct Binary {
     
     /// Returns the `Int`-value of the next n-bits (`quantitiy`)
     /// and increments the reading cursor by n-bits.
-    public mutating func readBits(quantitiy: Int) throws -> Int {
+    public mutating func readBits(_ quantitiy: Int) throws -> Int {
         guard (0...(bytesStore.count * byteSize)).contains(readBitCursor + quantitiy) else {
             throw BinaryError.outOfBounds
         }
@@ -147,7 +147,7 @@ public struct Binary {
     
     /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readBytes(quantitiy: Int) throws -> [UInt8] {
+    public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
         let byteCursor = readBitCursor / byteSize
         incrementCursorBy(bytes: quantitiy)
         return try getBytes(range: byteCursor..<(byteCursor + quantitiy))
@@ -156,7 +156,7 @@ public struct Binary {
     /// Returns a `String` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
     public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .utf8) throws -> String {
-        guard let result = String(bytes: try self.readBytes(quantitiy: quantitiy), encoding: encoding) else {
+        guard let result = String(bytes: try self.readBytes(quantitiy), encoding: encoding) else {
             throw BinaryError.notString
         }
         return result
@@ -178,7 +178,7 @@ public struct Binary {
     /// increments the reading cursor by 4 bits.
     public mutating func readNibble() throws -> UInt8 {
         let bitsPerNibble = 4
-        return UInt8(try readBits(quantitiy: bitsPerNibble))
+        return UInt8(try readBits(bitsPerNibble))
     }
     
     // MARK: Read — Signed Integer
@@ -190,19 +190,19 @@ public struct Binary {
     
     /// Returns an `Int16` and increments the reading cursor by 2 bytes.
     public mutating func readInt16() throws -> Int16 {
-        let bytes = try readBytes(quantitiy: MemoryLayout<Int16>.size)
+        let bytes = try readBytes(MemoryLayout<Int16>.size)
         return Int16(bitPattern: UInt16(UInt(bytes: bytes)))
     }
     
     /// Returns an `Int32` and increments the reading cursor by 4 bytes.
     public mutating func readInt32() throws -> Int32 {
-        let bytes = try readBytes(quantitiy: MemoryLayout<Int32>.size)
+        let bytes = try readBytes(MemoryLayout<Int32>.size)
         return Int32(bitPattern: UInt32(UInt(bytes: bytes)))
     }
     
     /// Returns an `Int64` and increments the reading cursor by 8 bytes.
     public mutating func readInt64() throws -> Int64 {
-        let bytes = try readBytes(quantitiy: MemoryLayout<Int64>.size)
+        let bytes = try readBytes(MemoryLayout<Int64>.size)
         return Int64(bitPattern: UInt64(UInt(bytes: bytes)))
     }
     
@@ -215,26 +215,26 @@ public struct Binary {
     
     /// Returns an `UInt16` and increments the reading cursor by 2 bytes.
     public mutating func readUInt16() throws -> UInt16 {
-        let bytes = try readBytes(quantitiy: MemoryLayout<UInt16>.size)
+        let bytes = try readBytes(MemoryLayout<UInt16>.size)
         return UInt16(UInt(bytes: bytes))
     }
     
     /// Returns an `UInt32` and increments the reading cursor by 4 bytes.
     public mutating func readUInt32() throws -> UInt32 {
-        let bytes = try readBytes(quantitiy: MemoryLayout<UInt32>.size)
+        let bytes = try readBytes(MemoryLayout<UInt32>.size)
         return UInt32(UInt(bytes: bytes))
     }
     
     /// Returns an `UInt64` and increments the reading cursor by 8 bytes.
     public mutating func readUInt64() throws -> UInt64 {
-        let bytes = try readBytes(quantitiy: MemoryLayout<UInt64>.size)
+        let bytes = try readBytes(MemoryLayout<UInt64>.size)
         return UInt64(UInt(bytes: bytes))
     }
     
     // MARK: - Find
     
     /// Returns indices of given `[UInt8]`.
-    func indices(of sequence: [UInt8]) -> [Int] {
+    public func indices(of sequence: [UInt8]) -> [Int] {
         let size = sequence.count
         return bytesStore.indices.dropLast(size - 1).filter {
             bytesStore[$0..<($0 + size)].elementsEqual(sequence)
@@ -242,7 +242,7 @@ public struct Binary {
     }
     
     /// Returns indices of given `String`.
-    func indices(of string: String) -> [Int] {
+    public func indices(of string: String) -> [Int] {
         let sequence = [UInt8](string.utf8)
         return indices(of: sequence)
     }
@@ -250,17 +250,17 @@ public struct Binary {
     // MARK: - Write
     
     /// Writes a byte (`UInt8`) to `Binary`.
-    mutating func writeByte(_ byte: UInt8) {
+    public mutating func writeByte(_ byte: UInt8) {
         bytesStore.append(byte)
     }
     
     /// Writes bytes (`[UInt8]`) to `Binary`.
-    mutating func writeBytes(_ bytes: [UInt8]) {
+    public mutating func writeBytes(_ bytes: [UInt8]) {
         bytesStore.append(contentsOf: bytes)
     }
     
     /// Writes a bit (`UInt8`) to `Binary`.
-    mutating func writeBit(bit: UInt8) {
+    public mutating func writeBit(bit: UInt8) {
         let byte: UInt8 = bit << Int(7 - (writeBitCursor % 8))
         let index = writeBitCursor / 8
         
@@ -276,18 +276,18 @@ public struct Binary {
     }
     
     /// Writes a `Bool` as a bit to `Binary`.
-    mutating func writeBool(bool: Bool) {
+    public mutating func writeBool(_ bool: Bool) {
         writeBit(bit: bool ? 1 : 0)
     }
     
     /// Writes a `String` to `Binary`.
-    mutating func writeString(_ string: String) {
+    public mutating func writeString(_ string: String) {
         let bytes = [UInt8](string.utf8)
         writeBytes(bytes)
     }
     
     /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `Binary`.
-    mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
+    public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
         bytesStore.append(contentsOf: int.bytes)
     }
 }
