@@ -3,11 +3,11 @@ import Foundation
 public struct Binary {
     /// Stores a reading cursor in bits.
     /// All methods starting with `read` will increment the value of `readBitCursor`.
-    private var readBitCursor: Int
+    public private(set) var readBitCursor: Int
     
     /// Stores a writing cursor in bits.
     /// All methods starting with `write` will increment the value of `writeBitCursor`.
-    private var writeBitCursor: Int
+    public private(set) var writeBitCursor: Int
     
     /// Stores the binary content.
     public var bytesStore: [UInt8]
@@ -21,7 +21,6 @@ public struct Binary {
         self.writeBitCursor = 0
         self.bytesStore = bytes
     }
-    
     
     /// Initialize an empty `Binary`.
     public init() {
