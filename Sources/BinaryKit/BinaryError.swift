@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum BinaryError: Error {
+public enum BinaryError: Error {
     case outOfBounds
     case notString
 }
