@@ -28,7 +28,7 @@ final class BinaryKitTests: XCTestCase {
         
         XCTAssertThrowsError(try bin.readBit())
         
-        bin.resetCursor()
+        bin.resetReadCursor()
         
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 0)
@@ -52,7 +52,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBits(4), 13)
         XCTAssertEqual(try bin.readBits(8), 175)
         XCTAssertThrowsError(try bin.readBits(1))
-        bin.resetCursor()
+        bin.resetReadCursor()
         XCTAssertEqual(try bin.readBits(8), 173)
     }
     
@@ -75,7 +75,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readByte(), 173)
         XCTAssertEqual(try bin.readByte(), 175)
         XCTAssertThrowsError(try bin.readByte())
-        bin.resetCursor()
+        bin.resetReadCursor()
         XCTAssertEqual(try bin.readByte(), 173)
         XCTAssertEqual(try bin.readByte(), 175)
     }
@@ -97,7 +97,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBytes(1), [173])
         XCTAssertEqual(try bin.readBytes(2), [175, 141])
         XCTAssertThrowsError(try bin.readBytes(3))
-        bin.resetCursor()
+        bin.resetReadCursor()
         XCTAssertEqual(try bin.readBytes(1), [173])
     }
     

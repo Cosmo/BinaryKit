@@ -42,27 +42,27 @@ public struct Binary {
     // MARK: - Cursor
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bits`.
-    private func incrementedCursorBy(bits: Int) -> Int {
+    private func incrementedReadCursorBy(bits: Int) -> Int {
         return readBitCursor + bits
     }
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bytes`.
-    private func incrementedCursorBy(bytes: Int) -> Int {
+    private func incrementedReadCursorBy(bytes: Int) -> Int {
         return readBitCursor + (bytes * byteSize)
     }
     
     /// Increments the `readBitCursor`-value by the given `bits`.
-    private mutating func incrementCursorBy(bits: Int) {
-        readBitCursor = incrementedCursorBy(bits: bits)
+    private mutating func incrementReadCursorBy(bits: Int) {
+        readBitCursor = incrementedReadCursorBy(bits: bits)
     }
     
     /// Increments the `readBitCursor`-value by the given `bytes`.
-    private mutating func incrementCursorBy(bytes: Int) {
-        readBitCursor = incrementedCursorBy(bytes: bytes)
+    private mutating func incrementReadCursorBy(bytes: Int) {
+        readBitCursor = incrementedReadCursorBy(bytes: bytes)
     }
 
     /// Sets the reading cursor back to its initial value.
-    public mutating func resetCursor() {
+    public mutating func resetReadCursor() {
         self.readBitCursor = 0
     }
     
@@ -120,7 +120,7 @@ public struct Binary {
     /// position and increments the reading cursor by one bit.
     public mutating func readBit() throws -> UInt8 {
         let result = try getBit(index: readBitCursor)
-        incrementCursorBy(bits: 1)
+        incrementReadCursorBy(bits: 1)
         return result
     }
     
@@ -133,7 +133,7 @@ public struct Binary {
         let result = try (readBitCursor..<(readBitCursor + quantitiy)).reversed().enumerated().reduce(0) {
             $0 + Int(try getBit(index: $1.element) << $1.offset)
         }
-        incrementCursorBy(bits: quantitiy)
+        incrementReadCursorBy(bits: quantitiy)
         return result
     }
     
@@ -141,7 +141,7 @@ public struct Binary {
     /// increments the reading cursor by 1 byte.
     public mutating func readByte() throws -> UInt8 {
         let result = try getByte(index: readBitCursor / byteSize)
-        incrementCursorBy(bytes: 1)
+        incrementReadCursorBy(bytes: 1)
         return result
     }
     
@@ -149,7 +149,7 @@ public struct Binary {
     /// increments the reading cursor by n-bytes.
     public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
         let byteCursor = readBitCursor / byteSize
-        incrementCursorBy(bytes: quantitiy)
+        incrementReadCursorBy(bytes: quantitiy)
         return try getBytes(range: byteCursor..<(byteCursor + quantitiy))
     }
     
