@@ -129,10 +129,16 @@ public struct Binary {
         guard (0...(bytesStore.count * byteSize)).contains(readBitCursor + quantitiy) else {
             throw BinaryError.outOfBounds
         }
-        let result = try (readBitCursor..<(readBitCursor + quantitiy)).reversed().enumerated().reduce(0) {
-            $0 + Int(try getBit(index: $1.element) << $1.offset)
+        
+        let range = (readBitCursor..<(readBitCursor + quantitiy))
+        let result = try range.reversed().enumerated().reduce(0) {
+            let bit = try getBit(index: $1.element)
+            let value = Int(bit) << $1.offset
+            return $0 + value
         }
+        
         incrementReadCursorBy(bits: quantitiy)
+        
         return result
     }
     

@@ -266,6 +266,13 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readUInt64(), UInt64.min)
     }
     
+    func testLongBits() {
+        var bin = Binary(bytes: [0x47, 0x11, 0xff, 0x1c])
+        XCTAssertEqual(try bin.readBits(8), 0x47)
+        XCTAssertEqual(try bin.readBits(3), 0)
+        XCTAssertEqual(try bin.readBits(13), 0x11ff)
+    }
+    
     // MARK: -
 
     static var allTests = [
@@ -283,5 +290,6 @@ final class BinaryKitTests: XCTestCase {
         ("testFinders", testFinders),
         ("testWrite", testWrite),
         ("testWriteInt", testWriteInt),
+        ("testLongBits", testLongBits),
     ]
 }
