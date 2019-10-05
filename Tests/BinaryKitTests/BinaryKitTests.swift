@@ -273,6 +273,40 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBits(13), 0x11ff)
     }
     
+    func testholdCursors() {
+        var bin = Binary(bytes: [0x47, 0x11, 0xff, 0x1c])
+        _ = try? bin.readBits(10, holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readBit(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readBytes(2, holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readByte(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readBool(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readInt8(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readInt16(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readInt32(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readInt64(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readNibble(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readUInt8(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readUInt16(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readUInt32(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readUInt64(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+        _ = try? bin.readCharacter(holdCursor: true)
+        XCTAssertEqual(bin.readBitCursor, 0)
+    }
+    
     // MARK: -
 
     static var allTests = [
@@ -291,5 +325,6 @@ final class BinaryKitTests: XCTestCase {
         ("testWrite", testWrite),
         ("testWriteInt", testWriteInt),
         ("testLongBits", testLongBits),
+        ("testholdCursors", testholdCursors),
     ]
 }
