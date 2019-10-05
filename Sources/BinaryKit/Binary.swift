@@ -43,6 +43,8 @@ public struct Binary {
         self.init(bytes: bytes)
     }
     
+    
+    
     // MARK: - Cursor
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bits`.
@@ -70,6 +72,8 @@ public struct Binary {
         self.readBitCursor = 0
     }
     
+    
+    
     // MARK: - Get
     
     /// All `get` methods give access to binary data at any given
@@ -77,42 +81,59 @@ public struct Binary {
     
     /// Returns an `UInt8` with the value of 0 or 1 of the given position.
     public func getBit(index: Int) throws -> UInt8 {
-        guard (0..<(bytesStore.count)).contains(index / byteSize) else {
+        // Check if the request is within bounds
+        let storeRange = 0..<bytesStore.count
+        let readByteCursor = index / byteSize
+        guard storeRange.contains(readByteCursor) else {
             throw BinaryError.outOfBounds
         }
-        let byteCursor = index / byteSize
+        
+        // Get bit
         let byteLastBitIndex = 7
         let bitindex = byteLastBitIndex - (index % byteSize)
-        return (bytesStore[byteCursor] >> bitindex) & 1
+        return (bytesStore[readByteCursor] >> bitindex) & 1
     }
     
     /// Returns the `Int`-value of the given range.
     public mutating func getBits(range: Range<Int>) throws -> Int {
-        guard (0...(bytesStore.count * byteSize)).contains(range.endIndex) else {
+        // Check if the request is within bounds
+        let storeRange = 0...(bytesStore.count * byteSize)
+        guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
+        
+        // Get bits
         return try range.reversed().enumerated().reduce(0) {
             let bit = try getBit(index: $1.element)
-            return $0 + Int(bit << $1.offset)
+            return $0 + Int(bit) << $1.offset
         }
     }
     
     /// Returns the `UInt8`-value of the given `index`.
     public func getByte(index: Int) throws -> UInt8 {
-        /// Check if `index` is within bounds of `bytes`
-        guard (0..<(bytesStore.count)).contains(index) else {
+        // Check if the request is within bounds
+        let storeRange = 0..<bytesStore.count
+        guard storeRange.contains(index) else {
             throw BinaryError.outOfBounds
         }
+        
+        // Get byte
         return bytesStore[index]
     }
     
     /// Returns an `[UInt8]` of the given `range`.
     public func getBytes(range: Range<Int>) throws -> [UInt8] {
-        guard (0...(bytesStore.count)).contains(range.endIndex) else {
+        // Check if the request is within bounds
+        let storeRange = 0...bytesStore.count
+        guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
+        
+        // Get bytes
         return Array(bytesStore[range])
     }
+    
+    
     
     // MARK: - Read
     
@@ -123,67 +144,49 @@ public struct Binary {
     
     /// Returns an `UInt8` with the value of 0 or 1 of the given
     /// position and increments the reading cursor by one bit.
-    public mutating func readBit(holdCursor: Bool = false) throws -> UInt8 {
+    public mutating func readBit() throws -> UInt8 {
         let result = try getBit(index: readBitCursor)
-        if !holdCursor {
-            incrementReadCursorBy(bits: 1)
-        }
+        incrementReadCursorBy(bits: 1)
         return result
     }
     
     /// Returns the `Int`-value of the next n-bits (`quantitiy`)
     /// and increments the reading cursor by n-bits.
-    public mutating func readBits(_ quantitiy: Int, holdCursor: Bool = false) throws -> Int {
-        guard (0...(bytesStore.count * byteSize)).contains(readBitCursor + quantitiy) else {
-            throw BinaryError.outOfBounds
-        }
-        
+    public mutating func readBits(_ quantitiy: Int) throws -> Int {
         let range = (readBitCursor..<(readBitCursor + quantitiy))
-        let result = try range.reversed().enumerated().reduce(0) {
-            let bit = try getBit(index: $1.element)
-            let value = Int(bit) << $1.offset
-            return $0 + value
-        }
-        
-        if !holdCursor {
-            incrementReadCursorBy(bits: quantitiy)
-        }
-        
+        let result = try getBits(range: range)
+        incrementReadCursorBy(bits: quantitiy)
         return result
     }
     
-    public mutating func readBits(_ quantitiy: UInt8, holdCursor: Bool = false) throws -> Int {
-        return try readBits(Int(quantitiy), holdCursor: holdCursor)
+    public mutating func readBits(_ quantitiy: UInt8) throws -> Int {
+        return try readBits(Int(quantitiy))
     }
     
     /// Returns the `UInt8`-value of the next byte and
     /// increments the reading cursor by 1 byte.
-    public mutating func readByte(holdCursor: Bool = false) throws -> UInt8 {
+    public mutating func readByte() throws -> UInt8 {
         let result = try getByte(index: readBitCursor / byteSize)
-        if !holdCursor {
-            incrementReadCursorBy(bytes: 1)
-        }
+        incrementReadCursorBy(bytes: 1)
         return result
     }
     
     /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readBytes(_ quantitiy: Int, holdCursor: Bool = false) throws -> [UInt8] {
-        let byteCursor = readBitCursor / byteSize
-        if !holdCursor {
-            incrementReadCursorBy(bytes: quantitiy)
-        }
-        return try getBytes(range: byteCursor..<(byteCursor + quantitiy))
+    public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
+        let readByteCursor = readBitCursor / byteSize
+        incrementReadCursorBy(bytes: quantitiy)
+        return try getBytes(range: readByteCursor..<(readByteCursor + quantitiy))
     }
     
-    public mutating func readBytes(_ quantitiy: UInt8, holdCursor: Bool = false) throws -> [UInt8] {
-        return try readBytes(Int(quantitiy), holdCursor: holdCursor)
+    public mutating func readBytes(_ quantitiy: UInt8) throws -> [UInt8] {
+        return try readBytes(Int(quantitiy))
     }
     
     /// Returns a `String` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .utf8, holdCursor: Bool = false) throws -> String {
-        guard let result = String(bytes: try self.readBytes(quantitiy, holdCursor: holdCursor), encoding: encoding) else {
+    public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .ascii) throws -> String {
+        guard let result = String(bytes: try self.readBytes(quantitiy), encoding: encoding) else {
             throw BinaryError.notString
         }
         return result
@@ -191,72 +194,74 @@ public struct Binary {
     
     /// Returns the next byte as `Character` and
     /// increments the reading cursor by 1 byte.
-    public mutating func readCharacter(holdCursor: Bool = false) throws -> Character {
-        return Character(UnicodeScalar(try readByte(holdCursor: holdCursor)))
+    public mutating func readCharacter() throws -> Character {
+        return Character(UnicodeScalar(try readByte()))
     }
     
     /// Returns the `Bool`-value of the next bit and
     /// increments the reading cursor by 1 bit.
-    public mutating func readBool(holdCursor: Bool = false) throws -> Bool {
-        return try readBit(holdCursor: holdCursor) == 1
+    public mutating func readBool() throws -> Bool {
+        return try readBit() == 1
     }
     
     /// Returns the `UInt8`-value of the next 4 bit and
     /// increments the reading cursor by 4 bits.
-    public mutating func readNibble(holdCursor: Bool = false) throws -> UInt8 {
-        let bitsPerNibble = 4
-        return UInt8(try readBits(bitsPerNibble, holdCursor: holdCursor))
+    public mutating func readNibble() throws -> UInt8 {
+        let NibbleBitWidth = 4
+        return UInt8(try readBits(NibbleBitWidth))
     }
     
     // MARK: Read — Signed Integer
     
     /// Returns an `Int8` and increments the reading cursor by 1 byte.
-    public mutating func readInt8(holdCursor: Bool = false) throws -> Int8 {
-        return Int8(bitPattern: try readByte(holdCursor: holdCursor))
+    public mutating func readInt8() throws -> Int8 {
+        return Int8(bitPattern: try readByte())
     }
     
     /// Returns an `Int16` and increments the reading cursor by 2 bytes.
-    public mutating func readInt16(holdCursor: Bool = false) throws -> Int16 {
-        let bytes = try readBytes(MemoryLayout<Int16>.size, holdCursor: holdCursor)
+    public mutating func readInt16() throws -> Int16 {
+        let bytes = try readBytes(MemoryLayout<Int16>.size)
         return Int16(bitPattern: UInt16(UInt(bytes: bytes)))
     }
     
     /// Returns an `Int32` and increments the reading cursor by 4 bytes.
-    public mutating func readInt32(holdCursor: Bool = false) throws -> Int32 {
-        let bytes = try readBytes(MemoryLayout<Int32>.size, holdCursor: holdCursor)
+    public mutating func readInt32() throws -> Int32 {
+        let bytes = try readBytes(MemoryLayout<Int32>.size)
         return Int32(bitPattern: UInt32(UInt(bytes: bytes)))
     }
     
     /// Returns an `Int64` and increments the reading cursor by 8 bytes.
-    public mutating func readInt64(holdCursor: Bool = false) throws -> Int64 {
-        let bytes = try readBytes(MemoryLayout<Int64>.size, holdCursor: holdCursor)
+    public mutating func readInt64() throws -> Int64 {
+        let bytes = try readBytes(MemoryLayout<Int64>.size)
         return Int64(bitPattern: UInt64(UInt(bytes: bytes)))
     }
     
     // MARK: Read - Unsigned Integer
     
     /// Returns an `UInt8` and increments the reading cursor by 1 byte.
-    public mutating func readUInt8(holdCursor: Bool = false) throws -> UInt8 {
-        return try readByte(holdCursor: holdCursor)
+    public mutating func readUInt8() throws -> UInt8 {
+        return try readByte()
     }
     
     /// Returns an `UInt16` and increments the reading cursor by 2 bytes.
-    public mutating func readUInt16(holdCursor: Bool = false) throws -> UInt16 {
-        let bytes = try readBytes(MemoryLayout<UInt16>.size, holdCursor: holdCursor)
+    public mutating func readUInt16() throws -> UInt16 {
+        let bytes = try readBytes(MemoryLayout<UInt16>.size)
         return UInt16(UInt(bytes: bytes))
     }
     
     /// Returns an `UInt32` and increments the reading cursor by 4 bytes.
-    public mutating func readUInt32(holdCursor: Bool = false) throws -> UInt32 {
-        let bytes = try readBytes(MemoryLayout<UInt32>.size, holdCursor: holdCursor)
+    public mutating func readUInt32() throws -> UInt32 {
+        let bytes = try readBytes(MemoryLayout<UInt32>.size)
         return UInt32(UInt(bytes: bytes))
     }
     
     /// Returns an `UInt64` and increments the reading cursor by 8 bytes.
-    public mutating func readUInt64(holdCursor: Bool = false) throws -> UInt64 {
-        let bytes = try readBytes(MemoryLayout<UInt64>.size, holdCursor: holdCursor)
+    public mutating func readUInt64() throws -> UInt64 {
+        let bytes = try readBytes(MemoryLayout<UInt64>.size)
         return UInt64(UInt(bytes: bytes))
     }
+    
+    
     
     // MARK: - Find
     
@@ -274,6 +279,8 @@ public struct Binary {
         return indices(of: sequence)
     }
 
+    
+    
     // MARK: - Write
     
     /// Writes a byte (`UInt8`) to `Binary`.
@@ -288,8 +295,8 @@ public struct Binary {
     
     /// Writes a bit (`UInt8`) to `Binary`.
     public mutating func writeBit(bit: UInt8) {
-        let byte: UInt8 = bit << Int(7 - (writeBitCursor % 8))
-        let index = writeBitCursor / 8
+        let byte: UInt8 = bit << Int(7 - (writeBitCursor % byteSize))
+        let index = writeBitCursor / byteSize
         
         if bytesStore.count == index {
             bytesStore.append(byte)
@@ -299,7 +306,7 @@ public struct Binary {
             bytesStore[index] = newByte
         }
         
-        writeBitCursor += 1
+        writeBitCursor = writeBitCursor + 1
     }
     
     /// Writes a `Bool` as a bit to `Binary`.
