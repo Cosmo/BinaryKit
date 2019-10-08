@@ -5,8 +5,6 @@
 //  Created by Devran on 19.09.19.
 //
 
-import Foundation
-
 extension String {
     internal func chunked(by groupCount: Int) -> [String] {
         let startIndex = self.startIndex

@@ -5,8 +5,6 @@
 //  Created by Devran on 01.10.19.
 //
 
-import Foundation
-
 extension FixedWidthInteger {
     var bytes: [UInt8] {
         return (0..<(bitWidth / UInt8.bitWidth)).map {
