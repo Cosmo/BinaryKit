@@ -1,12 +1,16 @@
 import Foundation
 
-public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == Int {
+public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == Int {
     /// Returns the bit position of the reading cursor.
     /// All methods starting with `read` will increment this value.
     public private(set) var readBitCursor: Int
     
+    /// Returns the bit position of the writing cursor.
+    /// All methods starting with `write` will increment this value.
+    public private(set) var writeBitCursor: Int
+    
     /// Returns the stored bytes.
-    public let bytesStore: BytesStore
+    public private(set) var bytesStore: BytesStore
     
     /// Constant with number of bits in a byte
     private let byteSize = UInt8.bitWidth
@@ -16,9 +20,10 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         return bytesStore.count
     }
     
-    /// Creates a new `BinaryReader`.
+    /// Creates a new `Binary`.
     public init(bytes: BytesStore) {
         self.readBitCursor = 0
+        self.writeBitCursor = 0
         self.bytesStore = bytes
     }
     
@@ -255,15 +260,61 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         let sequence = [UInt8](string.utf8)
         return indices(of: sequence)
     }
+
+    
+    
+    // MARK: - Write
+    
+    /// Writes a byte (`UInt8`) to `Binary`.
+    public mutating func writeByte(_ byte: UInt8) {
+        bytesStore.append(byte)
+    }
+    
+    /// Writes bytes (`[UInt8]`) to `Binary`.
+    public mutating func writeBytes(_ bytes: [UInt8]) {
+        bytesStore.append(contentsOf: bytes)
+    }
+    
+    /// Writes a bit (`UInt8`) to `Binary`.
+    public mutating func writeBit(bit: UInt8) {
+        let byte: UInt8 = bit << Int(7 - (writeBitCursor % byteSize))
+        let index = writeBitCursor / byteSize
+        
+        if bytesStore.count == index {
+            bytesStore.append(byte)
+        } else {
+            let oldByte = bytesStore[index]
+            let newByte = oldByte ^ byte
+            bytesStore[index] = newByte
+        }
+        
+        writeBitCursor = writeBitCursor + 1
+    }
+    
+    /// Writes a `Bool` as a bit to `Binary`.
+    public mutating func writeBool(_ bool: Bool) {
+        writeBit(bit: bool ? 1 : 0)
+    }
+    
+    /// Writes a `String` to `Binary`.
+    public mutating func writeString(_ string: String) {
+        let bytes = [UInt8](string.utf8)
+        writeBytes(bytes)
+    }
+    
+    /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `Binary`.
+    public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
+        bytesStore.append(contentsOf: int.bytes)
+    }
 }
 
-extension BinaryReader where BytesStore == [UInt8] {
-    /// Creates an empty `BinaryReader`.
+extension Binary where BytesStore == [UInt8] {
+    /// Creates an empty `Binary`.
     public init() {
         self.init(bytes: [])
     }
     
-    /// Creates a new `BinaryReader` with a string of hexadecimal values converted to bytes.
+    /// Creates a new `Binary` with a string of hexadecimal values converted to bytes.
     public init?(hexString: String) {
         let charsPerByte = 2
         let hexBase = 16
