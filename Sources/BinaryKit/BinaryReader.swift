@@ -72,7 +72,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     }
     
     /// Returns the `Int`-value of the given range.
-    public mutating func getBits(range: Range<Int>) throws -> Int {
+    public func getBits(range: Range<Int>) throws -> Int {
         // Check if the request is within bounds
         let storeRange = 0...(bytesStore.count * byteSize)
         guard storeRange.contains(range.endIndex) else {
@@ -99,7 +99,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     }
     
     /// Returns an `[UInt8]` of the given `range`.
-    public func getBytes(range: Range<Int>) throws -> [UInt8] {
+    public func getBytes(range: Range<Int>) throws -> BytesStore.SubSequence {
         // Check if the request is within bounds
         let storeRange = 0...bytesStore.count
         guard storeRange.contains(range.endIndex) else {
@@ -107,7 +107,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         }
         
         // Get bytes
-        return Array(bytesStore[range])
+        return bytesStore[range]
     }
     
     
@@ -150,13 +150,13 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     
     /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
+    public mutating func readBytes(_ quantitiy: Int) throws -> BytesStore.SubSequence {
         let readByteCursor = readBitCursor / byteSize
         incrementReadCursorBy(bytes: quantitiy)
         return try getBytes(range: readByteCursor..<(readByteCursor + quantitiy))
     }
     
-    public mutating func readBytes(_ quantitiy: UInt8) throws -> [UInt8] {
+    public mutating func readBytes(_ quantitiy: UInt8) throws -> BytesStore.SubSequence {
         return try readBytes(Int(quantitiy))
     }
     
@@ -188,29 +188,11 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         return UInt8(try readBits(NibbleBitWidth))
     }
     
-    // MARK: Read — Signed Integer
-    
-    /// Returns an `Int8` and increments the reading cursor by 1 byte.
-    public mutating func readInt8() throws -> Int8 {
-        return Int8(bitPattern: try readByte())
-    }
-    
-    /// Returns an `Int16` and increments the reading cursor by 2 bytes.
-    public mutating func readInt16() throws -> Int16 {
-        let bytes = try readBytes(MemoryLayout<Int16>.size)
-        return Int16(bitPattern: UInt16(UInt(bytes: bytes)))
-    }
-    
-    /// Returns an `Int32` and increments the reading cursor by 4 bytes.
-    public mutating func readInt32() throws -> Int32 {
-        let bytes = try readBytes(MemoryLayout<Int32>.size)
-        return Int32(bitPattern: UInt32(UInt(bytes: bytes)))
-    }
-    
-    /// Returns an `Int64` and increments the reading cursor by 8 bytes.
-    public mutating func readInt64() throws -> Int64 {
-        let bytes = try readBytes(MemoryLayout<Int64>.size)
-        return Int64(bitPattern: UInt64(UInt(bytes: bytes)))
+    // MARK: Read — Fixed Width Integer
+
+    // Returns an `FixedWidthInteger` (UInt8, Int8, UInt16, ...) and increments the reading cursor by `MemoryLayout<Integer>.size` bytes.
+    public mutating func readInteger<Integer>(type: Integer.Type = Integer.self) throws -> Integer where Integer: FixedWidthInteger {
+        Integer(networkByteOrder: Integer(bytes: try readBytes(MemoryLayout<Integer>.size)))
     }
     
     // MARK: Read - Unsigned Integer
@@ -220,24 +202,10 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         return try readByte()
     }
     
-    /// Returns an `UInt16` and increments the reading cursor by 2 bytes.
-    public mutating func readUInt16() throws -> UInt16 {
-        let bytes = try readBytes(MemoryLayout<UInt16>.size)
-        return UInt16(UInt(bytes: bytes))
+    /// Returns an `Int8` and increments the reading cursor by 1 byte.
+    public mutating func readInt8() throws -> Int8 {
+        return Int8(bitPattern: try readByte())
     }
-    
-    /// Returns an `UInt32` and increments the reading cursor by 4 bytes.
-    public mutating func readUInt32() throws -> UInt32 {
-        let bytes = try readBytes(MemoryLayout<UInt32>.size)
-        return UInt32(UInt(bytes: bytes))
-    }
-    
-    /// Returns an `UInt64` and increments the reading cursor by 8 bytes.
-    public mutating func readUInt64() throws -> UInt64 {
-        let bytes = try readBytes(MemoryLayout<UInt64>.size)
-        return UInt64(UInt(bytes: bytes))
-    }
-    
     
     
     // MARK: - Find

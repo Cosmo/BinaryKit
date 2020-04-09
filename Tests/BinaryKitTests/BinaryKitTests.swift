@@ -245,26 +245,26 @@ final class BinaryKitTests: XCTestCase {
         
         var binReader = BinaryReader(bytes: bin.bytesStore)
         
-        XCTAssertEqual(try binReader.readUInt32(), 2_370_718_244)
-        XCTAssertEqual(try binReader.readUInt64(), 0x4112444912881220)
+        XCTAssertEqual(try binReader.readInteger(), UInt32(2_370_718_244))
+        XCTAssertEqual(try binReader.readInteger(), UInt64(0x4112444912881220))
         
         XCTAssertEqual(try binReader.readInt8(), Int8.max)
         XCTAssertEqual(try binReader.readInt8(), Int8.min)
-        XCTAssertEqual(try binReader.readInt16(), Int16.max)
-        XCTAssertEqual(try binReader.readInt16(), Int16.min)
-        XCTAssertEqual(try binReader.readInt32(), Int32.max)
-        XCTAssertEqual(try binReader.readInt32(), Int32.min)
-        XCTAssertEqual(try binReader.readInt64(), Int64.max)
-        XCTAssertEqual(try binReader.readInt64(), Int64.min)
+        XCTAssertEqual(try binReader.readInteger(), Int16.max)
+        XCTAssertEqual(try binReader.readInteger(), Int16.min)
+        XCTAssertEqual(try binReader.readInteger(), Int32.max)
+        XCTAssertEqual(try binReader.readInteger(), Int32.min)
+        XCTAssertEqual(try binReader.readInteger(), Int64.max)
+        XCTAssertEqual(try binReader.readInteger(), Int64.min)
         
         XCTAssertEqual(try binReader.readUInt8(), UInt8.max)
         XCTAssertEqual(try binReader.readUInt8(), UInt8.min)
-        XCTAssertEqual(try binReader.readUInt16(), UInt16.max)
-        XCTAssertEqual(try binReader.readUInt16(), UInt16.min)
-        XCTAssertEqual(try binReader.readUInt32(), UInt32.max)
-        XCTAssertEqual(try binReader.readUInt32(), UInt32.min)
-        XCTAssertEqual(try binReader.readUInt64(), UInt64.max)
-        XCTAssertEqual(try binReader.readUInt64(), UInt64.min)
+        XCTAssertEqual(try binReader.readInteger(), UInt16.max)
+        XCTAssertEqual(try binReader.readInteger(), UInt16.min)
+        XCTAssertEqual(try binReader.readInteger(), UInt32.max)
+        XCTAssertEqual(try binReader.readInteger(), UInt32.min)
+        XCTAssertEqual(try binReader.readInteger(), UInt64.max)
+        XCTAssertEqual(try binReader.readInteger(), UInt64.min)
     }
     
     func testLongBits() {

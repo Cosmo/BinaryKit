@@ -29,8 +29,8 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
         bytesStore.append(byte)
     }
     
-    /// Writes bytes (`[UInt8]`) to `self`.
-    public mutating func writeBytes(_ bytes: [UInt8]) {
+    /// Writes bytes (`DataProtocol`) to `self`.
+    public mutating func writeBytes<D>(_ bytes: D) where D: DataProtocol {
         bytesStore.append(contentsOf: bytes)
     }
     
@@ -61,9 +61,9 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
         writeBytes(bytes)
     }
     
-    /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `Binary`.
+    /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `self`.
     public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
-        bytesStore.append(contentsOf: int.bytes)
+        bytesStore.append(contentsOf: int.toNetworkByteOrder.data)
     }
 }
 
