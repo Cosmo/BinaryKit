@@ -6,7 +6,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBit() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 0)
@@ -36,7 +36,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBitIndex() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        let bin = Binary(bytes: bytes)
+        let bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.getBit(index: 0), 1)
         XCTAssertEqual(try bin.getBit(index: 1), 0)
@@ -46,7 +46,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBits() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.readBits(4), 10)
         XCTAssertEqual(try bin.readBits(4), 13)
@@ -58,7 +58,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBitsRange() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.getBits(range: 0..<4), 10)
         XCTAssertEqual(try bin.getBits(range: 4..<8), 13)
@@ -70,7 +70,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testByte() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.readByte(), 173)
         XCTAssertEqual(try bin.readByte(), 175)
@@ -82,7 +82,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testByteIndex() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        let bin = Binary(bytes: bytes)
+        let bin = BinaryReader(bytes: bytes)
         
         XCTAssertThrowsError(try bin.getByte(index: -1))
         XCTAssertEqual(try bin.getByte(index: 0), 173)
@@ -92,7 +92,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBytes() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.readBytes(1), [173])
         XCTAssertEqual(try bin.readBytes(2), [175, 141])
@@ -103,7 +103,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBytesRange() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        let bin = Binary(bytes: bytes)
+        let bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.getBytes(range: 0..<2), [173, 175])
         XCTAssertThrowsError(try bin.getBytes(range: 2..<3))
@@ -112,10 +112,10 @@ final class BinaryKitTests: XCTestCase {
     // MARK: - Init
     
     func testHexInit() {
-        let brokenBinary = Binary(hexString: "xFF00F1")
+        let brokenBinary = BinaryReader(hexString: "xFF00F1")
         XCTAssertNil(brokenBinary)
         
-        let binary = Binary(hexString: "FF00F1")
+        let binary = BinaryReader(hexString: "FF00F1")
         XCTAssertNotNil(binary)
         guard var bin = binary else { return }
         
@@ -129,7 +129,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testNibble() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.readNibble(), 10)
         XCTAssertEqual(try bin.readNibble(), 13)
@@ -139,7 +139,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testStringAndCharacter() {
         let bytes: [UInt8] = [104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33, 0, 255, 0, 100, 0, 9]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         XCTAssertEqual(try bin.readString(quantitiyOfBytes: 12), "hello, world")
         XCTAssertEqual(try bin.readCharacter(), "!")
         XCTAssertThrowsError(try bin.readString(quantitiyOfBytes: 6, encoding: .nonLossyASCII))
@@ -149,7 +149,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBool() {
         let bytes: [UInt8] = [0b1101_0101]
-        var bin = Binary(bytes: bytes)
+        var bin = BinaryReader(bytes: bytes)
         XCTAssertEqual(try bin.readBool(), true)
         XCTAssertEqual(try bin.readBool(), true)
         XCTAssertEqual(try bin.readBool(), false)
@@ -161,7 +161,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testFinders() {
         let bytes: [UInt8] = [104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33]
-        let bin = Binary(bytes: bytes)
+        let bin = BinaryReader(bytes: bytes)
         XCTAssertEqual(bin.indices(of: [111, 44]), [4])
         XCTAssertEqual(bin.indices(of: "l"), [2, 3, 10])
         XCTAssertEqual(bin.indices(of: "wo"), [7])
@@ -170,7 +170,7 @@ final class BinaryKitTests: XCTestCase {
     // MARK: - Write
     
     func testWrite() {
-        var bin = Binary(bytes: [])
+        var bin = BinaryWriter(bytes: [])
         bin.writeBit(bit: 1)
         XCTAssertEqual(bin.bytesStore, [128])
         bin.writeBit(bit: 1)
@@ -198,31 +198,31 @@ final class BinaryKitTests: XCTestCase {
         bin.writeInt(UInt8(2))
         bin.writeInt(UInt32(UInt32.max))
 
-
+        var binReader = BinaryReader(bytes: bin.bytesStore)
         
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readByte(), 128)
-        XCTAssertEqual(try bin.readByte(), 7)
-        XCTAssertEqual(try bin.readByte(), 128)
-        XCTAssertEqual(try bin.readString(quantitiyOfBytes: 12), "hello world!")
-        XCTAssertEqual(try bin.readByte(), 2)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readBit(), 1)
+        XCTAssertEqual(try binReader.readByte(), 128)
+        XCTAssertEqual(try binReader.readByte(), 7)
+        XCTAssertEqual(try binReader.readByte(), 128)
+        XCTAssertEqual(try binReader.readString(quantitiyOfBytes: 12), "hello world!")
+        XCTAssertEqual(try binReader.readByte(), 2)
         
-        XCTAssertEqual(try bin.readByte(), 255)
-        XCTAssertEqual(try bin.readByte(), 255)
-        XCTAssertEqual(try bin.readByte(), 255)
-        XCTAssertEqual(try bin.readByte(), 255)
+        XCTAssertEqual(try binReader.readByte(), 255)
+        XCTAssertEqual(try binReader.readByte(), 255)
+        XCTAssertEqual(try binReader.readByte(), 255)
+        XCTAssertEqual(try binReader.readByte(), 255)
     }
     
     func testWriteInt() {
-        var bin = Binary(bytes: [])
+        var bin = BinaryWriter(bytes: [])
         bin.writeInt(UInt32(2_370_718_244))
         bin.writeInt(UInt64(0x4112444912881220))
         bin.writeInt(Int8(Int8.max))
@@ -243,31 +243,32 @@ final class BinaryKitTests: XCTestCase {
         bin.writeInt(UInt64(UInt64.max))
         bin.writeInt(UInt64(UInt64.min))
         
+        var binReader = BinaryReader(bytes: bin.bytesStore)
         
-        XCTAssertEqual(try bin.readUInt32(), 2_370_718_244)
-        XCTAssertEqual(try bin.readUInt64(), 0x4112444912881220)
+        XCTAssertEqual(try binReader.readUInt32(), 2_370_718_244)
+        XCTAssertEqual(try binReader.readUInt64(), 0x4112444912881220)
         
-        XCTAssertEqual(try bin.readInt8(), Int8.max)
-        XCTAssertEqual(try bin.readInt8(), Int8.min)
-        XCTAssertEqual(try bin.readInt16(), Int16.max)
-        XCTAssertEqual(try bin.readInt16(), Int16.min)
-        XCTAssertEqual(try bin.readInt32(), Int32.max)
-        XCTAssertEqual(try bin.readInt32(), Int32.min)
-        XCTAssertEqual(try bin.readInt64(), Int64.max)
-        XCTAssertEqual(try bin.readInt64(), Int64.min)
+        XCTAssertEqual(try binReader.readInt8(), Int8.max)
+        XCTAssertEqual(try binReader.readInt8(), Int8.min)
+        XCTAssertEqual(try binReader.readInt16(), Int16.max)
+        XCTAssertEqual(try binReader.readInt16(), Int16.min)
+        XCTAssertEqual(try binReader.readInt32(), Int32.max)
+        XCTAssertEqual(try binReader.readInt32(), Int32.min)
+        XCTAssertEqual(try binReader.readInt64(), Int64.max)
+        XCTAssertEqual(try binReader.readInt64(), Int64.min)
         
-        XCTAssertEqual(try bin.readUInt8(), UInt8.max)
-        XCTAssertEqual(try bin.readUInt8(), UInt8.min)
-        XCTAssertEqual(try bin.readUInt16(), UInt16.max)
-        XCTAssertEqual(try bin.readUInt16(), UInt16.min)
-        XCTAssertEqual(try bin.readUInt32(), UInt32.max)
-        XCTAssertEqual(try bin.readUInt32(), UInt32.min)
-        XCTAssertEqual(try bin.readUInt64(), UInt64.max)
-        XCTAssertEqual(try bin.readUInt64(), UInt64.min)
+        XCTAssertEqual(try binReader.readUInt8(), UInt8.max)
+        XCTAssertEqual(try binReader.readUInt8(), UInt8.min)
+        XCTAssertEqual(try binReader.readUInt16(), UInt16.max)
+        XCTAssertEqual(try binReader.readUInt16(), UInt16.min)
+        XCTAssertEqual(try binReader.readUInt32(), UInt32.max)
+        XCTAssertEqual(try binReader.readUInt32(), UInt32.min)
+        XCTAssertEqual(try binReader.readUInt64(), UInt64.max)
+        XCTAssertEqual(try binReader.readUInt64(), UInt64.min)
     }
     
     func testLongBits() {
-        var bin = Binary(bytes: [0x47, 0x11, 0xff, 0x1c])
+        var bin = BinaryReader(bytes: [0x47, 0x11, 0xff, 0x1c])
         XCTAssertEqual(try bin.readBits(8), 0x47)
         XCTAssertEqual(try bin.readBits(3), 0)
         XCTAssertEqual(try bin.readBits(13), 0x11ff)
