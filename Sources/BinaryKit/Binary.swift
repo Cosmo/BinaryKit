@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Binary {
+public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == Int {
     /// Returns the bit position of the reading cursor.
     /// All methods starting with `read` will increment this value.
     public private(set) var readBitCursor: Int
@@ -10,7 +10,7 @@ public struct Binary {
     public private(set) var writeBitCursor: Int
     
     /// Returns the stored bytes.
-    public private(set) var bytesStore: [UInt8]
+    public private(set) var bytesStore: BytesStore
     
     /// Constant with number of bits in a byte
     private let byteSize = UInt8.bitWidth
@@ -21,29 +21,11 @@ public struct Binary {
     }
     
     /// Creates a new `Binary`.
-    public init(bytes: [UInt8]) {
+    public init(bytes: BytesStore) {
         self.readBitCursor = 0
         self.writeBitCursor = 0
         self.bytesStore = bytes
     }
-    
-    /// Creates an empty `Binary`.
-    public init() {
-        self.init(bytes: [])
-    }
-    
-    /// Creates a new `Binary` with a string of hexadecimal values converted to bytes.
-    public init?(hexString: String) {
-        let charsPerByte = 2
-        let hexBase = 16
-        let bytes = hexString.chunked(by: charsPerByte).compactMap{ UInt8($0, radix: hexBase) }
-        guard hexString.count / charsPerByte == bytes.count else {
-            return nil
-        }
-        self.init(bytes: bytes)
-    }
-    
-    
     
     // MARK: - Cursor
     
@@ -323,5 +305,23 @@ public struct Binary {
     /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `Binary`.
     public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
         bytesStore.append(contentsOf: int.bytes)
+    }
+}
+
+extension Binary where BytesStore == [UInt8] {
+    /// Creates an empty `Binary`.
+    public init() {
+        self.init(bytes: [])
+    }
+    
+    /// Creates a new `Binary` with a string of hexadecimal values converted to bytes.
+    public init?(hexString: String) {
+        let charsPerByte = 2
+        let hexBase = 16
+        let bytes = hexString.chunked(by: charsPerByte).compactMap{ UInt8($0, radix: hexBase) }
+        guard hexString.count / charsPerByte == bytes.count else {
+            return nil
+        }
+        self.init(bytes: bytes)
     }
 }
