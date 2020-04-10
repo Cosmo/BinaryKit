@@ -7,9 +7,9 @@
 import Foundation
 
 extension FixedWidthInteger {
-    var toNetworkByteOrder: Self { self.bigEndian }
+    public var toNetworkByteOrder: Self { self.bigEndian }
     /// A collection containing the words of this value’s binary representation, in order from the least significant to most significant.
-    var data: Data {
+    public var data: Data {
         var copy = self
         return Data(bytes: &copy, count: MemoryLayout<Self>.size)
     }
