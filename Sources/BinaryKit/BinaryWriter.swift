@@ -36,7 +36,7 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
     
     /// Writes a bit (`UInt8`) to `self`.
     public mutating func writeBit(bit: UInt8) {
-        let byte: UInt8 = bit << Int(7 - (writeBitCursor % byteSize))
+        let byte: UInt8 = (bit & 0b1) << Int(7 - (writeBitCursor % byteSize))
         let index = writeBitCursor / byteSize
         
         if bytesStore.count == index {
@@ -48,6 +48,12 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
         }
         
         writeBitCursor = writeBitCursor + 1
+    }
+    
+    public mutating func writeBits<Integer>(from value: Integer, count: Int) where Integer: FixedWidthInteger {
+        for index in (0..<count).reversed() {
+            writeBit(bit: (value >> index).data[0])
+        }
     }
     
     /// Writes a `Bool` as a bit to `self`.
