@@ -51,19 +51,19 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBits(4), 10)
         XCTAssertEqual(try bin.readBits(4), 13)
         XCTAssertEqual(try bin.readBits(8), 175)
-        XCTAssertThrowsError(try bin.readBits(1))
+        XCTAssertThrowsError(try bin.readBits(1, type: UInt8.self))
         bin.resetReadCursor()
         XCTAssertEqual(try bin.readBits(8), 173)
     }
     
     func testBitsRange() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = BinaryReader(bytes: bytes)
+        let bin = BinaryReader(bytes: bytes)
         
         XCTAssertEqual(try bin.getBits(range: 0..<4), 10)
         XCTAssertEqual(try bin.getBits(range: 4..<8), 13)
         XCTAssertEqual(try bin.getBits(range: 8..<16), 175)
-        XCTAssertThrowsError(try bin.getBits(range: 16..<17))
+        XCTAssertThrowsError(try bin.getBits(range: 16..<17, type: UInt8.self))
     }
     
     // MARK: - Byte
@@ -155,6 +155,15 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBool(), false)
         XCTAssertEqual(try bin.readBool(), true)
         XCTAssertEqual(try bin.readBool(), false)
+    }
+    func testReadRemainingBytes_1() {
+        var bin = BinaryReader(bytes: [1, 2, 3, 4, 5, 6, 7, 8])
+        XCTAssertEqual(try bin.readRemainingBytes(), [1, 2, 3, 4, 5, 6, 7, 8])
+    }
+    func testReadRemainingBytes_2() {
+        var bin = BinaryReader(bytes: [1, 2, 3, 4, 5, 6, 7, 8])
+        XCTAssertEqual(try bin.readInteger(type: UInt8.self), 1)
+        XCTAssertEqual(try bin.readRemainingBytes(), [2, 3, 4, 5, 6, 7, 8])
     }
     
     // MARK: - Finders
