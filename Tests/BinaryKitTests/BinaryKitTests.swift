@@ -178,7 +178,7 @@ final class BinaryKitTests: XCTestCase {
     
     // MARK: - Write
     
-    func testWrite() {
+    func testWrite1() {
         var bin = BinaryWriter(bytes: [])
         bin.writeBit(bit: 1)
         XCTAssertEqual(bin.bytesStore, [128])
@@ -228,6 +228,22 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try binReader.readByte(), 255)
         XCTAssertEqual(try binReader.readByte(), 255)
         XCTAssertEqual(try binReader.readByte(), 255)
+    }
+    
+    func testWrite2() {
+        var bin = BinaryWriter(bytes: [])
+        bin.writeBytes([1, 2])
+        XCTAssertEqual(bin.bytesStore, [1, 2])
+        bin.writeInt(UInt8(3))
+        XCTAssertEqual(bin.bytesStore, [1, 2, 3])
+        bin.writeInt(UInt16(4))
+        XCTAssertEqual(bin.bytesStore, [1, 2, 3, 0, 4])
+        bin.writeInt(UInt32(5))
+        XCTAssertEqual(bin.bytesStore, [1, 2, 3, 0, 4, 0, 0, 0, 5])
+        bin.writeInt(UInt64(6))
+        XCTAssertEqual(bin.bytesStore, [1, 2, 3, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6])
+        bin.writeBytes(Data([7, 8]))
+        XCTAssertEqual(bin.bytesStore, [1, 2, 3, 0, 4, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 6, 7, 8])
     }
     
     func testWriteInt() {
@@ -291,7 +307,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try binReader.readBits(2), 0b01)
     }
     
-    func testLongBits() {
+    func testReadMultipleBits() {
         var bin = BinaryReader(bytes: [0x47, 0x11, 0xff, 0x1c])
         XCTAssertEqual(try bin.readBits(8), 0x47)
         XCTAssertEqual(try bin.readBits(3), 0)
@@ -313,8 +329,9 @@ final class BinaryKitTests: XCTestCase {
         ("testNibble", testNibble),
         ("testStringAndCharacter", testStringAndCharacter),
         ("testFinders", testFinders),
-        ("testWrite", testWrite),
+        ("testWrite1", testWrite1),
+        ("testWrite2", testWrite2),
         ("testWriteInt", testWriteInt),
-        ("testLongBits", testLongBits),
+        ("testReadMultipleBits", testReadMultipleBits),
     ]
 }

@@ -27,11 +27,13 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
     /// Writes a byte (`UInt8`) to `self`.
     public mutating func writeByte(_ byte: UInt8) {
         bytesStore.append(byte)
+        writeBitCursor += byteSize
     }
     
     /// Writes bytes (`DataProtocol`) to `self`.
     public mutating func writeBytes<D>(_ bytes: D) where D: DataProtocol {
         bytesStore.append(contentsOf: bytes)
+        writeBitCursor += byteSize * bytes.count
     }
     
     /// Writes a bit (`UInt8`) to `self`.
@@ -69,7 +71,7 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
     
     /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `self`.
     public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
-        bytesStore.append(contentsOf: int.toNetworkByteOrder.data)
+        writeBytes(int.toNetworkByteOrder.data)
     }
 }
 
@@ -87,6 +89,14 @@ extension BinaryWriter where BytesStore == [UInt8] {
         guard hexString.count / charsPerByte == bytes.count else {
             return nil
         }
+        self.init(bytes: bytes)
+    }
+}
+
+extension BinaryWriter {
+    public init(capacity: Int) {
+        var bytes = BytesStore()
+        bytes.reserveCapacity(capacity)
         self.init(bytes: bytes)
     }
 }
