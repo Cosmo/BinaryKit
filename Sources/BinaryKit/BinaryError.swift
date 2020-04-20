@@ -8,4 +8,5 @@
 public enum BinaryError: Error {
     case outOfBounds
     case notString
+    case requestesByteCountDoesNotFitIntoRequestedIntegerType
 }

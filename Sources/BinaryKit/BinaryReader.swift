@@ -201,6 +201,20 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         Integer(networkByteOrder: Integer(bytes: try readBytes(MemoryLayout<Integer>.size)))
     }
     
+    public mutating func readInteger<Integer>(byteCount: Int, type: Integer.Type = Integer.self) throws -> Integer where Integer: FixedWidthInteger {
+        guard byteCount <= MemoryLayout<Integer>.size else {
+            throw BinaryError.requestesByteCountDoesNotFitIntoRequestedIntegerType
+        }
+        let data = try readBytes(byteCount)
+        if byteCount == MemoryLayout<Integer>.size {
+            // fast path
+            return Integer(networkByteOrder: Integer(bytes: data))
+        }
+        let missingLeadingZeros = MemoryLayout<Integer>.size - byteCount
+        let dataWithMissingLeadingZeros = Data.init(repeating: 0, count: missingLeadingZeros) + data
+        return Integer(networkByteOrder: Integer(bytes: dataWithMissingLeadingZeros))
+    }
+    
     // MARK: Read - Unsigned Integer
     
     /// Returns an `UInt8` and increments the reading cursor by 1 byte.

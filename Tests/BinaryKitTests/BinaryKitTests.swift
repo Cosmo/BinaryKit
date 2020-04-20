@@ -314,6 +314,27 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBits(13), 0x11ff)
     }
     
+    func testReadInteger() throws {
+        var bin = BinaryReader(bytes: [
+            1,
+            2, 2,
+            3, 0, 3,
+            4, 0, 0, 4,
+            5, 0, 0, 0, 5,
+            6, 0, 0, 0, 0, 6,
+            7, 0, 0, 0, 0, 0, 7,
+            8, 0, 0, 0, 0, 0, 0, 8,
+        ])
+        XCTAssertEqual(try bin.readInteger(byteCount: 1, type: UInt64.self), 1)
+        XCTAssertEqual(try bin.readInteger(byteCount: 2, type: UInt64.self), (2 << 8) + 2)
+        XCTAssertEqual(try bin.readInteger(byteCount: 3, type: UInt64.self), (3 << 16) + 3)
+        XCTAssertEqual(try bin.readInteger(byteCount: 4, type: UInt64.self), (4 << 24) + 4)
+        XCTAssertEqual(try bin.readInteger(byteCount: 5, type: UInt64.self), (5 << 32) + 5)
+        XCTAssertEqual(try bin.readInteger(byteCount: 6, type: UInt64.self), (6 << 40) + 6)
+        XCTAssertEqual(try bin.readInteger(byteCount: 7, type: UInt64.self), (7 << 48) + 7)
+        XCTAssertEqual(try bin.readInteger(byteCount: 8, type: UInt64.self), (8 << 56) + 8)
+    }
+    
     // MARK: -
 
     static var allTests = [
