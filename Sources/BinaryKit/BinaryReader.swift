@@ -17,12 +17,12 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     internal var readBitCursor: Int
     
     /// Returns the stored bytes.
-    public let bytesStore: BytesStore
+    public let bytes: BytesStore
     
     /// Returns the stored number of bytes.
     @inlinable
     public var count: Int {
-        return bytesStore.count
+        return bytes.count
     }
     
     @inlinable
@@ -38,7 +38,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     @inlinable
     public init(bytes: BytesStore) {
         self.readBitCursor = 0
-        self.bytesStore = bytes
+        self.bytes = bytes
     }
     
     // MARK: - Cursor
@@ -84,7 +84,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     @inlinable
     public func getBit(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
-        let storeRange = 0..<bytesStore.count
+        let storeRange = 0..<bytes.count
         let readByteCursor =  index >> 3
         guard storeRange.contains(readByteCursor) else {
             throw BinaryError.outOfBounds
@@ -93,7 +93,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
         // Get bit
         let byteLastBitIndex = 7
         let bitindex = byteLastBitIndex - (index % UInt8.bitWidth)
-        return (bytesStore[readByteCursor] >> bitindex) & 1
+        return (bytes[readByteCursor] >> bitindex) & 1
     }
     
     /// Returns the `Int`-value of the given range.
@@ -104,7 +104,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
             "requested range count (\(range.count)) is larger than size of \(Integer.self) (\(MemoryLayout<Integer>.size * 8)bit)."
         )
         // Check if the request is within bounds
-        let storeRange = 0...bitCountFromByteCount(bytesStore.count)
+        let storeRange = 0...bitCountFromByteCount(bytes.count)
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
@@ -120,26 +120,26 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     @inlinable
     public func getByte(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
-        let storeRange = 0..<bytesStore.count
+        let storeRange = 0..<bytes.count
         guard storeRange.contains(index) else {
             throw BinaryError.outOfBounds
         }
         
         // Get byte
-        return bytesStore[index]
+        return bytes[index]
     }
     
     /// Returns an `[UInt8]` of the given `range`.
     @inlinable
     public func getBytes(range: Range<Int>) throws -> BytesStore.SubSequence {
         // Check if the request is within bounds
-        let storeRange = 0...bytesStore.count
+        let storeRange = 0...bytes.count
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
         
         // Get bytes
-        return bytesStore[range]
+        return bytes[range]
     }
     
     
@@ -272,8 +272,8 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     @inlinable
     public func indices(of sequence: [UInt8]) -> [Int] {
         let size = sequence.count
-        return bytesStore.indices.dropLast(size - 1).filter {
-            bytesStore[$0..<($0 + size)].elementsEqual(sequence)
+        return bytes.indices.dropLast(size - 1).filter {
+            bytes[$0..<($0 + size)].elementsEqual(sequence)
         }
     }
     
