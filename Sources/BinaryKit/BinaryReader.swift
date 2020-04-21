@@ -1,5 +1,14 @@
 import Foundation
 
+@usableFromInline
+internal func bitCountFromByteCount(_ bytes: Int) -> Int {
+    bytes << 3 // bitCursor * UInt8.bitWidth
+}
+@usableFromInline
+internal func byteCursorFromBitCursor(_ bitCursor: Int) -> {
+    bitCursor >> 3 // bitCursor / UInt8.bitWidth
+}
+
 public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == Int {
     /// Returns the bit position of the reading cursor.
     /// All methods starting with `read` will increment this value.
@@ -8,18 +17,16 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     /// Returns the stored bytes.
     public let bytesStore: BytesStore
     
-    /// Constant with number of bits in a byte
-    private let byteSize = UInt8.bitWidth
-    
     /// Returns the stored number of bytes.
     public var count: Int {
         return bytesStore.count
     }
     
-    public var isEmpty: Bool { nextFullByteIndex >= count }
+    public var isEmpty: Bool { readByteCursor >= count }
     
-    private var nextFullByteIndex: Int {
-        return readBitCursor / byteSize
+    @usableFromInline
+    internal var readByteCursor: Int {
+        return byteCursorFromBitCursor(readBitCursor)
     }
     
     /// Creates a new `BinaryReader`.
@@ -31,22 +38,26 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     // MARK: - Cursor
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bits`.
-    private func incrementedReadCursorBy(bits: Int) -> Int {
+    @usableFromInline
+    internal func incrementedReadCursorBy(bits: Int) -> Int {
         return readBitCursor + bits
     }
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bytes`.
-    private func incrementedReadCursorBy(bytes: Int) -> Int {
-        return readBitCursor + (bytes * byteSize)
+    @usableFromInline
+    internal func incrementedReadCursorBy(bytes: Int) -> Int {
+        return readBitCursor + bitCountFromByteCount(bytes)
     }
     
     /// Increments the `readBitCursor`-value by the given `bits`.
-    private mutating func incrementReadCursorBy(bits: Int) {
+    @usableFromInline
+    internal mutating func incrementReadCursorBy(bits: Int) {
         readBitCursor = incrementedReadCursorBy(bits: bits)
     }
     
     /// Increments the `readBitCursor`-value by the given `bytes`.
-    private mutating func incrementReadCursorBy(bytes: Int) {
+    @usableFromInline
+    internal mutating func incrementReadCursorBy(bytes: Int) {
         readBitCursor = incrementedReadCursorBy(bytes: bytes)
     }
 
@@ -66,14 +77,14 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     public func getBit(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
         let storeRange = 0..<bytesStore.count
-        let readByteCursor = index / byteSize
+        let readByteCursor =  index >> 3
         guard storeRange.contains(readByteCursor) else {
             throw BinaryError.outOfBounds
         }
         
         // Get bit
         let byteLastBitIndex = 7
-        let bitindex = byteLastBitIndex - (index % byteSize)
+        let bitindex = byteLastBitIndex - (index % UInt8.bitWidth)
         return (bytesStore[readByteCursor] >> bitindex) & 1
     }
     
@@ -84,7 +95,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
             "requested range count (\(range.count)) is larger than size of \(Integer.self) (\(MemoryLayout<Integer>.size * 8)bit)."
         )
         // Check if the request is within bounds
-        let storeRange = 0...(bytesStore.count * byteSize)
+        let storeRange = 0...bitCountFromByteCount(bytesStore.count)
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
@@ -149,16 +160,14 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     /// Returns the `UInt8`-value of the next byte and
     /// increments the reading cursor by 1 byte.
     public mutating func readByte() throws -> UInt8 {
-        let result = try getByte(index: nextFullByteIndex)
-        incrementReadCursorBy(bytes: 1)
-        return result
+        defer { incrementReadCursorBy(bytes: 1) }
+        return try getByte(index: readByteCursor)
     }
     
     /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
     public mutating func readBytes(_ quantitiy: Int) throws -> BytesStore.SubSequence {
-        let readByteCursor = readBitCursor / byteSize
-        incrementReadCursorBy(bytes: quantitiy)
+        defer { incrementReadCursorBy(bytes: quantitiy) }
         return try getBytes(range: readByteCursor..<(readByteCursor + quantitiy))
     }
     
@@ -228,7 +237,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     }
     
     public mutating func readRemainingBytes() throws -> BytesStore.SubSequence {
-        try readBytes(count - nextFullByteIndex)
+        try readBytes(count - readByteCursor)
     }
     
     
