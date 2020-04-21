@@ -16,9 +16,11 @@ extension FixedWidthInteger {
 }
 
 extension FixedWidthInteger {
+    @usableFromInline
     init(networkByteOrder value: Self) {
         self = Self(bigEndian: value)
     }
+    @usableFromInline
     init<D>(bytes: D) where D: DataProtocol {
         var mutableSelf = Self()
         withUnsafeMutableBytes(of: &mutableSelf) { (pointer) in
