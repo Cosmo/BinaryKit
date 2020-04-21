@@ -5,7 +5,7 @@ internal func bitCountFromByteCount(_ bytes: Int) -> Int {
     bytes << 3 // bitCursor * UInt8.bitWidth
 }
 @usableFromInline
-internal func byteCursorFromBitCursor(_ bitCursor: Int) -> {
+internal func byteCursorFromBitCursor(_ bitCursor: Int) -> Int {
     bitCursor >> 3 // bitCursor / UInt8.bitWidth
 }
 
