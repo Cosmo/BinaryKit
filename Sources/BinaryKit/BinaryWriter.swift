@@ -5,11 +5,14 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
     /// All methods starting with `write` will increment this value.
     public private(set) var writeBitCursor: Int
     
+    /// Returns the byte position of the writing cursor.
+    @usableFromInline
+    internal var writeByteCursor: Int {
+        return byteCursorFromBitCursor(writeBitCursor)
+    }
+    
     /// Returns the stored bytes.
     public private(set) var bytesStore: BytesStore
-    
-    /// Constant with number of bits in a byte
-    private let byteSize = UInt8.bitWidth
     
     /// Returns the stored number of bytes.
     public var count: Int {
@@ -27,26 +30,26 @@ public struct BinaryWriter<BytesStore: MutableDataProtocol> where BytesStore.Ind
     /// Writes a byte (`UInt8`) to `self`.
     public mutating func writeByte(_ byte: UInt8) {
         bytesStore.append(byte)
-        writeBitCursor += byteSize
+        writeBitCursor += UInt8.bitWidth
     }
     
     /// Writes bytes (`DataProtocol`) to `self`.
     public mutating func writeBytes<D>(_ bytes: D) where D: DataProtocol {
         bytesStore.append(contentsOf: bytes)
-        writeBitCursor += byteSize * bytes.count
+        writeBitCursor += bitCountFromByteCount(bytes.count)
     }
     
     /// Writes a bit (`UInt8`) to `self`.
     public mutating func writeBit(bit: UInt8) {
-        let byte: UInt8 = (bit & 0b1) << Int(7 - (writeBitCursor % byteSize))
-        let index = writeBitCursor / byteSize
+        let byte: UInt8 = (bit & 0b1) << Int(7 - (writeBitCursor % UInt8.bitWidth))
+        let writeByteCursor = self.writeByteCursor
         
-        if bytesStore.count == index {
+        if bytesStore.count == writeByteCursor {
             bytesStore.append(byte)
         } else {
-            let oldByte = bytesStore[index]
+            let oldByte = bytesStore[writeByteCursor]
             let newByte = oldByte ^ byte
-            bytesStore[index] = newByte
+            bytesStore[writeByteCursor] = newByte
         }
         
         writeBitCursor = writeBitCursor + 1

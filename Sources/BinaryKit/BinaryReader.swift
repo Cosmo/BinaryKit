@@ -24,6 +24,7 @@ public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == I
     
     public var isEmpty: Bool { readByteCursor >= count }
     
+    /// Returns the byte position of the reading cursor.
     @usableFromInline
     internal var readByteCursor: Int {
         return byteCursorFromBitCursor(readBitCursor)
