@@ -6,6 +6,7 @@
 //
 
 extension String {
+    @usableFromInline
     internal func chunked(by groupCount: Int) -> [String] {
         let startIndex = self.startIndex
         return (0..<(self.count / groupCount)).map { (index: Int) -> String in

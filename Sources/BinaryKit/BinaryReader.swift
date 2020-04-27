@@ -1,55 +1,74 @@
 import Foundation
 
-public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == Int {
+@usableFromInline
+internal func bitCountFromByteCount(_ bytes: Int) -> Int {
+    bytes << 3 // bitCursor * UInt8.bitWidth
+}
+@usableFromInline
+internal func byteCursorFromBitCursor(_ bitCursor: Int) -> Int {
+    bitCursor >> 3 // bitCursor / UInt8.bitWidth
+}
+
+
+public struct BinaryReader<BytesStore: DataProtocol> where BytesStore.Index == Int {
     /// Returns the bit position of the reading cursor.
     /// All methods starting with `read` will increment this value.
-    public private(set) var readBitCursor: Int
-    
-    /// Returns the bit position of the writing cursor.
-    /// All methods starting with `write` will increment this value.
-    public private(set) var writeBitCursor: Int
+    @usableFromInline
+    internal var readBitCursor: Int
     
     /// Returns the stored bytes.
-    public private(set) var bytesStore: BytesStore
-    
-    /// Constant with number of bits in a byte
-    private let byteSize = UInt8.bitWidth
+    public let bytes: BytesStore
     
     /// Returns the stored number of bytes.
+    @inlinable
     public var count: Int {
-        return bytesStore.count
+        return bytes.count
     }
     
-    /// Creates a new `Binary`.
+    @inlinable
+    public var isEmpty: Bool { readByteCursor >= count }
+    
+    /// Returns the byte position of the reading cursor.
+    @usableFromInline
+    internal var readByteCursor: Int {
+        return byteCursorFromBitCursor(readBitCursor)
+    }
+    
+    /// Creates a new `BinaryReader`.
+    @inlinable
     public init(bytes: BytesStore) {
         self.readBitCursor = 0
-        self.writeBitCursor = 0
-        self.bytesStore = bytes
+        self.bytes = bytes
     }
     
     // MARK: - Cursor
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bits`.
-    private func incrementedReadCursorBy(bits: Int) -> Int {
+    @usableFromInline
+    internal func incrementedReadCursorBy(bits: Int) -> Int {
         return readBitCursor + bits
     }
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bytes`.
-    private func incrementedReadCursorBy(bytes: Int) -> Int {
-        return readBitCursor + (bytes * byteSize)
+    @usableFromInline
+    internal func incrementedReadCursorBy(bytes: Int) -> Int {
+        return readBitCursor + bitCountFromByteCount(bytes)
     }
     
     /// Increments the `readBitCursor`-value by the given `bits`.
-    private mutating func incrementReadCursorBy(bits: Int) {
+    @usableFromInline
+    internal mutating func incrementReadCursorBy(bits: Int) {
         readBitCursor = incrementedReadCursorBy(bits: bits)
     }
     
     /// Increments the `readBitCursor`-value by the given `bytes`.
-    private mutating func incrementReadCursorBy(bytes: Int) {
+    @usableFromInline
+    internal mutating func incrementReadCursorBy(bytes: Int) {
         readBitCursor = incrementedReadCursorBy(bytes: bytes)
     }
-
+    
     /// Sets the reading cursor back to its initial value.
+    @inlinable
     public mutating func resetReadCursor() {
         self.readBitCursor = 0
     }
@@ -62,24 +81,30 @@ public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == 
     /// location — without incrementing the internal cursor.
     
     /// Returns an `UInt8` with the value of 0 or 1 of the given position.
+    @inlinable
     public func getBit(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
-        let storeRange = 0..<bytesStore.count
-        let readByteCursor = index / byteSize
+        let storeRange = 0..<bytes.count
+        let readByteCursor =  index >> 3
         guard storeRange.contains(readByteCursor) else {
             throw BinaryError.outOfBounds
         }
         
         // Get bit
         let byteLastBitIndex = 7
-        let bitindex = byteLastBitIndex - (index % byteSize)
-        return (bytesStore[readByteCursor] >> bitindex) & 1
+        let bitindex = byteLastBitIndex - (index % UInt8.bitWidth)
+        return (bytes[readByteCursor] >> bitindex) & 1
     }
     
     /// Returns the `Int`-value of the given range.
-    public mutating func getBits(range: Range<Int>) throws -> Int {
+    @inlinable
+    public func getBits<Integer>(range: Range<Int>, type: Integer.Type = Integer.self) throws -> Integer where Integer: FixedWidthInteger {
+        assert(
+            (MemoryLayout<Integer>.size * 8) >= range.count,
+            "requested range count (\(range.count)) is larger than size of \(Integer.self) (\(MemoryLayout<Integer>.size * 8)bit)."
+        )
         // Check if the request is within bounds
-        let storeRange = 0...(bytesStore.count * byteSize)
+        let storeRange = 0...bitCountFromByteCount(bytes.count)
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
@@ -87,32 +112,34 @@ public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == 
         // Get bits
         return try range.reversed().enumerated().reduce(0) {
             let bit = try getBit(index: $1.element)
-            return $0 + Int(bit) << $1.offset
+            return $0 &+ Integer(bit) << $1.offset
         }
     }
     
     /// Returns the `UInt8`-value of the given `index`.
+    @inlinable
     public func getByte(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
-        let storeRange = 0..<bytesStore.count
+        let storeRange = 0..<bytes.count
         guard storeRange.contains(index) else {
             throw BinaryError.outOfBounds
         }
         
         // Get byte
-        return bytesStore[index]
+        return bytes[index]
     }
     
     /// Returns an `[UInt8]` of the given `range`.
-    public func getBytes(range: Range<Int>) throws -> [UInt8] {
+    @inlinable
+    public func getBytes(range: Range<Int>) throws -> BytesStore.SubSequence {
         // Check if the request is within bounds
-        let storeRange = 0...bytesStore.count
+        let storeRange = 0...bytes.count
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
         
         // Get bytes
-        return Array(bytesStore[range])
+        return bytes[range]
     }
     
     
@@ -126,6 +153,7 @@ public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == 
     
     /// Returns an `UInt8` with the value of 0 or 1 of the given
     /// position and increments the reading cursor by one bit.
+    @inlinable
     public mutating func readBit() throws -> UInt8 {
         let result = try getBit(index: readBitCursor)
         incrementReadCursorBy(bits: 1)
@@ -134,39 +162,38 @@ public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == 
     
     /// Returns the `Int`-value of the next n-bits (`quantitiy`)
     /// and increments the reading cursor by n-bits.
-    public mutating func readBits(_ quantitiy: Int) throws -> Int {
+    @inlinable
+    public mutating func readBits<Integer>(_ quantitiy: Int, type: Integer.Type = Integer.self) throws -> Integer where Integer: FixedWidthInteger {
         let range = (readBitCursor..<(readBitCursor + quantitiy))
-        let result = try getBits(range: range)
+        let result: Integer = try getBits(range: range)
         incrementReadCursorBy(bits: quantitiy)
         return result
     }
     
-    public mutating func readBits(_ quantitiy: UInt8) throws -> Int {
-        return try readBits(Int(quantitiy))
-    }
-    
     /// Returns the `UInt8`-value of the next byte and
     /// increments the reading cursor by 1 byte.
+    @inlinable
     public mutating func readByte() throws -> UInt8 {
-        let result = try getByte(index: readBitCursor / byteSize)
-        incrementReadCursorBy(bytes: 1)
-        return result
+        defer { incrementReadCursorBy(bytes: 1) }
+        return try getByte(index: readByteCursor)
     }
     
     /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
-        let readByteCursor = readBitCursor / byteSize
-        incrementReadCursorBy(bytes: quantitiy)
+    @inlinable
+    public mutating func readBytes(_ quantitiy: Int) throws -> BytesStore.SubSequence {
+        defer { incrementReadCursorBy(bytes: quantitiy) }
         return try getBytes(range: readByteCursor..<(readByteCursor + quantitiy))
     }
     
-    public mutating func readBytes(_ quantitiy: UInt8) throws -> [UInt8] {
+    @inlinable
+    public mutating func readBytes(_ quantitiy: UInt8) throws -> BytesStore.SubSequence {
         return try readBytes(Int(quantitiy))
     }
     
     /// Returns a `String` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
+    @inlinable
     public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .ascii) throws -> String {
         guard let result = String(bytes: try self.readBytes(quantitiy), encoding: encoding) else {
             throw BinaryError.notString
@@ -176,145 +203,97 @@ public struct Binary<BytesStore: MutableDataProtocol> where BytesStore.Index == 
     
     /// Returns the next byte as `Character` and
     /// increments the reading cursor by 1 byte.
+    @inlinable
     public mutating func readCharacter() throws -> Character {
         return Character(UnicodeScalar(try readByte()))
     }
     
     /// Returns the `Bool`-value of the next bit and
     /// increments the reading cursor by 1 bit.
+    @inlinable
     public mutating func readBool() throws -> Bool {
         return try readBit() == 1
     }
     
     /// Returns the `UInt8`-value of the next 4 bit and
     /// increments the reading cursor by 4 bits.
+    @inlinable
     public mutating func readNibble() throws -> UInt8 {
         let NibbleBitWidth = 4
-        return UInt8(try readBits(NibbleBitWidth))
+        return try readBits(NibbleBitWidth)
     }
     
-    // MARK: Read — Signed Integer
+    // MARK: Read — Fixed Width Integer
     
-    /// Returns an `Int8` and increments the reading cursor by 1 byte.
-    public mutating func readInt8() throws -> Int8 {
-        return Int8(bitPattern: try readByte())
+    // Returns an `FixedWidthInteger` (UInt8, Int8, UInt16, ...) and increments the reading cursor by `MemoryLayout<Integer>.size` bytes.
+    @inlinable
+    public mutating func readInteger<Integer>(type: Integer.Type = Integer.self) throws -> Integer where Integer: FixedWidthInteger {
+        Integer(networkByteOrder: Integer(bytes: try readBytes(MemoryLayout<Integer>.size)))
     }
     
-    /// Returns an `Int16` and increments the reading cursor by 2 bytes.
-    public mutating func readInt16() throws -> Int16 {
-        let bytes = try readBytes(MemoryLayout<Int16>.size)
-        return Int16(bitPattern: UInt16(UInt(bytes: bytes)))
-    }
-    
-    /// Returns an `Int32` and increments the reading cursor by 4 bytes.
-    public mutating func readInt32() throws -> Int32 {
-        let bytes = try readBytes(MemoryLayout<Int32>.size)
-        return Int32(bitPattern: UInt32(UInt(bytes: bytes)))
-    }
-    
-    /// Returns an `Int64` and increments the reading cursor by 8 bytes.
-    public mutating func readInt64() throws -> Int64 {
-        let bytes = try readBytes(MemoryLayout<Int64>.size)
-        return Int64(bitPattern: UInt64(UInt(bytes: bytes)))
+    @inlinable
+    public mutating func readInteger<Integer>(byteCount: Int, type: Integer.Type = Integer.self) throws -> Integer where Integer: FixedWidthInteger {
+        guard byteCount <= MemoryLayout<Integer>.size else {
+            throw BinaryError.requestesByteCountDoesNotFitIntoRequestedIntegerType
+        }
+        let data = try readBytes(byteCount)
+        if byteCount == MemoryLayout<Integer>.size {
+            // fast path
+            return Integer(networkByteOrder: Integer(bytes: data))
+        }
+        let missingLeadingZeros = MemoryLayout<Integer>.size - byteCount
+        let dataWithMissingLeadingZeros = Data.init(repeating: 0, count: missingLeadingZeros) + data
+        return Integer(networkByteOrder: Integer(bytes: dataWithMissingLeadingZeros))
     }
     
     // MARK: Read - Unsigned Integer
     
     /// Returns an `UInt8` and increments the reading cursor by 1 byte.
+    @inlinable
     public mutating func readUInt8() throws -> UInt8 {
         return try readByte()
     }
     
-    /// Returns an `UInt16` and increments the reading cursor by 2 bytes.
-    public mutating func readUInt16() throws -> UInt16 {
-        let bytes = try readBytes(MemoryLayout<UInt16>.size)
-        return UInt16(UInt(bytes: bytes))
+    /// Returns an `Int8` and increments the reading cursor by 1 byte.
+    @inlinable
+    public mutating func readInt8() throws -> Int8 {
+        return Int8(bitPattern: try readByte())
     }
     
-    /// Returns an `UInt32` and increments the reading cursor by 4 bytes.
-    public mutating func readUInt32() throws -> UInt32 {
-        let bytes = try readBytes(MemoryLayout<UInt32>.size)
-        return UInt32(UInt(bytes: bytes))
+    @inlinable
+    public mutating func readRemainingBytes() throws -> BytesStore.SubSequence {
+        try readBytes(count - readByteCursor)
     }
-    
-    /// Returns an `UInt64` and increments the reading cursor by 8 bytes.
-    public mutating func readUInt64() throws -> UInt64 {
-        let bytes = try readBytes(MemoryLayout<UInt64>.size)
-        return UInt64(UInt(bytes: bytes))
-    }
-    
     
     
     // MARK: - Find
     
     /// Returns indices of given `[UInt8]`.
+    @inlinable
     public func indices(of sequence: [UInt8]) -> [Int] {
         let size = sequence.count
-        return bytesStore.indices.dropLast(size - 1).filter {
-            bytesStore[$0..<($0 + size)].elementsEqual(sequence)
+        return bytes.indices.dropLast(size - 1).filter {
+            bytes[$0..<($0 + size)].elementsEqual(sequence)
         }
     }
     
     /// Returns indices of given `String`.
+    @inlinable
     public func indices(of string: String) -> [Int] {
         let sequence = [UInt8](string.utf8)
         return indices(of: sequence)
     }
-
-    
-    
-    // MARK: - Write
-    
-    /// Writes a byte (`UInt8`) to `Binary`.
-    public mutating func writeByte(_ byte: UInt8) {
-        bytesStore.append(byte)
-    }
-    
-    /// Writes bytes (`[UInt8]`) to `Binary`.
-    public mutating func writeBytes(_ bytes: [UInt8]) {
-        bytesStore.append(contentsOf: bytes)
-    }
-    
-    /// Writes a bit (`UInt8`) to `Binary`.
-    public mutating func writeBit(bit: UInt8) {
-        let byte: UInt8 = bit << Int(7 - (writeBitCursor % byteSize))
-        let index = writeBitCursor / byteSize
-        
-        if bytesStore.count == index {
-            bytesStore.append(byte)
-        } else {
-            let oldByte = bytesStore[index]
-            let newByte = oldByte ^ byte
-            bytesStore[index] = newByte
-        }
-        
-        writeBitCursor = writeBitCursor + 1
-    }
-    
-    /// Writes a `Bool` as a bit to `Binary`.
-    public mutating func writeBool(_ bool: Bool) {
-        writeBit(bit: bool ? 1 : 0)
-    }
-    
-    /// Writes a `String` to `Binary`.
-    public mutating func writeString(_ string: String) {
-        let bytes = [UInt8](string.utf8)
-        writeBytes(bytes)
-    }
-    
-    /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `Binary`.
-    public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
-        bytesStore.append(contentsOf: int.bytes)
-    }
 }
 
-extension Binary where BytesStore == [UInt8] {
-    /// Creates an empty `Binary`.
+extension BinaryReader where BytesStore == [UInt8] {
+    /// Creates an empty `BinaryReader`.
+    @inlinable
     public init() {
         self.init(bytes: [])
     }
     
-    /// Creates a new `Binary` with a string of hexadecimal values converted to bytes.
+    /// Creates a new `BinaryReader` with a string of hexadecimal values converted to bytes.
+    @inlinable
     public init?(hexString: String) {
         let charsPerByte = 2
         let hexBase = 16

@@ -1,7 +1,1 @@
-import XCTest
-
-import BinaryKitTests
-
-var tests = [XCTestCaseEntry]()
-tests += BinaryKitTests.allTests()
-XCTMain(tests)
+fatalError("Run tests with `swift test --enable-test-discovery`.")
