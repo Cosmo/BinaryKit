@@ -334,25 +334,4 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readInteger(byteCount: 7, type: UInt64.self), (7 << 48) + 7)
         XCTAssertEqual(try bin.readInteger(byteCount: 8, type: UInt64.self), (8 << 56) + 8)
     }
-    
-    // MARK: -
-
-    static var allTests = [
-        ("testBitIndex", testBitIndex),
-        ("testBit", testBit),
-        ("testBits", testBits),
-        ("testBitsRange", testBitsRange),
-        ("testByte", testByte),
-        ("testByteIndex", testByteIndex),
-        ("testBytes", testBytes),
-        ("testBytesRange", testBytesRange),
-        ("testHexInit", testHexInit),
-        ("testNibble", testNibble),
-        ("testStringAndCharacter", testStringAndCharacter),
-        ("testFinders", testFinders),
-        ("testWrite1", testWrite1),
-        ("testWrite2", testWrite2),
-        ("testWriteInt", testWriteInt),
-        ("testReadMultipleBits", testReadMultipleBits),
-    ]
 }
