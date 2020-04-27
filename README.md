@@ -1,6 +1,7 @@
 # BinaryKit
 
 BinaryKit helps you to break down binary data into bits and bytes, easily access specific parts and write data to binary.
+This is a fork of [Cosmo/BinaryKit](https://github.com/Cosmo/BinaryKit) and still in active development.
 
 ## Access Bytes
 
@@ -70,28 +71,12 @@ let destinationIpAddress            = try binary.readBytes(4)
 Use the `write*` methods of `BinaryWriter` to store different types to binary. 
 
 ```swift
-var binary = BinaryWriter()
+var binary = BinaryWriter<[UInt8]>()
 binary.writeInt32(1_350_849_546)
 binary.writeString("Hello World!")
 binary.writeBytes([0xFF, 0xCC, 0x00, 0x01])
 binary.writeBool(true)
 ```
-
-## Contact
-
-* Devran "Cosmo" Uenal
-* Twitter: [@maccosmo](http://twitter.com/maccosmo)
-* LinkedIn: [devranuenal](https://www.linkedin.com/in/devranuenal)
-
-## Other Projects
-
-* [Clippy](https://github.com/Cosmo/Clippy) — Clippy from Microsoft Office is back and runs on macOS! Written in Swift.
-* [GrammaticalNumber](https://github.com/Cosmo/GrammaticalNumber) — Turns singular words to the plural and vice-versa in Swift.
-* [HackMan](https://github.com/Cosmo/HackMan) — Stop writing boilerplate code yourself. Let hackman do it for you via the command line.
-* [ISO8859](https://github.com/Cosmo/ISO8859) — Convert ISO8859 1-16 Encoded Text to String in Swift. Supports iOS, tvOS, watchOS and macOS.
-* [SpriteMap](https://github.com/Cosmo/SpriteMap) — SpriteMap helps you to extract sprites out of a sprite map. Written in Swift.
-* [StringCase](https://github.com/Cosmo/StringCase) — Converts String to lowerCamelCase, UpperCamelCase and snake_case. Tested and written in Swift.
-* [TinyConsole](https://github.com/Cosmo/TinyConsole) — TinyConsole is a micro-console that can help you log and display information inside an iOS application, where having a connection to a development computer is not possible.
 
 ## License
 
