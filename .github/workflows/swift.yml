@@ -16,5 +16,5 @@ jobs:
     - name: Run tests
       run: swift test -v --enable-test-discovery --enable-code-coverage
     - name: Code Coverage on Linux
-      if: runner.os == "Linux"
+      if: runner.os == 'Linux'
       uses: mattpolzin/swift-codecov-action@0.3.0
