@@ -111,7 +111,7 @@ final class BinaryKitTests: XCTestCase {
 
     // MARK: - Mixed Reading
 
-    func testReadBitReadByte() {
+    func testMixedReadByte() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
         var bin = Binary(bytes: bytes)
 
@@ -120,7 +120,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(bin.readBitCursor, 9)
     }
 
-    func testReadBitReadBytes() {
+    func testMixedReadBytes() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
         var bin = Binary(bytes: bytes)
 
@@ -129,7 +129,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(bin.readBitCursor, 17)
     }
 
-    func testThrowsBeforeActualRead() {
+    func testReadBytesThrowsBeforeReading() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
         var bin = Binary(bytes: bytes)
 
@@ -139,16 +139,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(bin.readBitCursor, 1)
     }
 
-    func testThrowsBeforeAcutalRead1() {
-        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
-        var bin = Binary(bytes: bytes)
-
-        XCTAssertEqual(bin.readBitCursor, 0)
-        XCTAssertThrowsError(try bin.readBytes(4))
-        XCTAssertEqual(bin.readBitCursor, 0)
-    }
-
-    func testThrowsBeforeAcutalRead2() {
+    func testReadBitsThrowsBeforeReading() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
         var bin = Binary(bytes: bytes)
 
