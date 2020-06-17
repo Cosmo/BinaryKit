@@ -79,7 +79,7 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readByte(), 173)
         XCTAssertEqual(try bin.readByte(), 175)
     }
-    
+
     func testByteIndex() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
         let bin = Binary(bytes: bytes)
@@ -108,7 +108,46 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.getBytes(range: 0..<2), [173, 175])
         XCTAssertThrowsError(try bin.getBytes(range: 2..<3))
     }
-    
+
+    // MARK: - Mixed Reading
+
+    func testMixedReadByte() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
+        var bin = Binary(bytes: bytes)
+
+        XCTAssertEqual(try bin.readBit(), 1)
+        XCTAssertEqual(try bin.readByte(), 91)
+        XCTAssertEqual(bin.readBitCursor, 9)
+    }
+
+    func testMixedReadBytes() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
+        var bin = Binary(bytes: bytes)
+
+        XCTAssertEqual(try bin.readBit(), 1)
+        XCTAssertEqual(try bin.readBytes(2), [UInt8(91),UInt8(95)])
+        XCTAssertEqual(bin.readBitCursor, 17)
+    }
+
+    func testReadBytesThrowsBeforeReading() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
+        var bin = Binary(bytes: bytes)
+
+        XCTAssertEqual(try bin.readBit(), 1)
+        XCTAssertEqual(bin.readBitCursor, 1)
+        XCTAssertThrowsError(try bin.readBytes(3))
+        XCTAssertEqual(bin.readBitCursor, 1)
+    }
+
+    func testReadBitsThrowsBeforeReading() {
+        let bytes: [UInt8] = [0b1010_1101, 0b1010_1111, 0b1000_1101]
+        var bin = Binary(bytes: bytes)
+
+        XCTAssertEqual(bin.readBitCursor, 0)
+        XCTAssertThrowsError(try bin.readBits(100))
+        XCTAssertEqual(bin.readBitCursor, 0)
+    }
+
     // MARK: - Init
     
     func testHexInit() {
@@ -204,12 +243,14 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 1)
+
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 1)
         XCTAssertEqual(try bin.readBit(), 1)
-        XCTAssertEqual(try bin.readBit(), 1)
+
         XCTAssertEqual(try bin.readByte(), 128)
+
         XCTAssertEqual(try bin.readByte(), 7)
         XCTAssertEqual(try bin.readByte(), 128)
         XCTAssertEqual(try bin.readString(quantitiyOfBytes: 12), "hello world!")

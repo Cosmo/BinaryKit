@@ -42,9 +42,9 @@ public struct Binary {
         }
         self.init(bytes: bytes)
     }
+
     
-    
-    
+
     // MARK: - Cursor
     
     /// Returns an `Int` with the value of `readBitCursor` incremented by `bits`.
@@ -95,7 +95,7 @@ public struct Binary {
     }
     
     /// Returns the `Int`-value of the given range.
-    public mutating func getBits(range: Range<Int>) throws -> Int {
+    public func getBits(range: Range<Int>) throws -> Int {
         // Check if the request is within bounds
         let storeRange = 0...(bytesStore.count * byteSize)
         guard storeRange.contains(range.endIndex) else {
@@ -166,17 +166,19 @@ public struct Binary {
     /// Returns the `UInt8`-value of the next byte and
     /// increments the reading cursor by 1 byte.
     public mutating func readByte() throws -> UInt8 {
-        let result = try getByte(index: readBitCursor / byteSize)
-        incrementReadCursorBy(bytes: 1)
-        return result
+        return UInt8(try readBits(byteSize))
     }
     
     /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
     /// increments the reading cursor by n-bytes.
     public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
-        let readByteCursor = readBitCursor / byteSize
-        incrementReadCursorBy(bytes: quantitiy)
-        return try getBytes(range: readByteCursor..<(readByteCursor + quantitiy))
+        // Check if the request is within bounds
+        let range = (readBitCursor..<(readBitCursor + quantitiy * byteSize))
+        let storeRange = 0...(bytesStore.count * byteSize)
+        guard storeRange.contains(range.endIndex) else {
+            throw BinaryError.outOfBounds
+        }
+        return try (0..<quantitiy).map{ _ in try readByte() }
     }
     
     public mutating func readBytes(_ quantitiy: UInt8) throws -> [UInt8] {
