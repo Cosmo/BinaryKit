@@ -316,7 +316,7 @@ final class BinaryKitTests: XCTestCase {
     
     // MARK: -
 
-    static var allTests = [
+    static var allTests: Linux.TestList<BinaryKitTests> = [
         ("testBitIndex", testBitIndex),
         ("testBit", testBit),
         ("testBits", testBits),
