@@ -58,7 +58,7 @@ final class BinaryKitTests: XCTestCase {
     
     func testBitsRange() {
         let bytes: [UInt8] = [0b1010_1101, 0b1010_1111]
-        var bin = Binary(bytes: bytes)
+        let bin = Binary(bytes: bytes)
         
         XCTAssertEqual(try bin.getBits(range: 0..<4), 10)
         XCTAssertEqual(try bin.getBits(range: 4..<8), 13)
@@ -179,9 +179,9 @@ final class BinaryKitTests: XCTestCase {
     func testStringAndCharacter() {
         let bytes: [UInt8] = [104, 101, 108, 108, 111, 44, 32, 119, 111, 114, 108, 100, 33, 0, 255, 0, 100, 0, 9]
         var bin = Binary(bytes: bytes)
-        XCTAssertEqual(try bin.readString(quantitiyOfBytes: 12), "hello, world")
+        XCTAssertEqual(try bin.readString(quantityOfBytes: 12), "hello, world")
         XCTAssertEqual(try bin.readCharacter(), "!")
-        XCTAssertThrowsError(try bin.readString(quantitiyOfBytes: 6, encoding: .nonLossyASCII))
+        XCTAssertThrowsError(try bin.readString(quantityOfBytes: 6, encoding: .nonLossyASCII))
     }
     
     // MARK: - Bool
@@ -253,7 +253,7 @@ final class BinaryKitTests: XCTestCase {
 
         XCTAssertEqual(try bin.readByte(), 7)
         XCTAssertEqual(try bin.readByte(), 128)
-        XCTAssertEqual(try bin.readString(quantitiyOfBytes: 12), "hello world!")
+        XCTAssertEqual(try bin.readString(quantityOfBytes: 12), "hello world!")
         XCTAssertEqual(try bin.readByte(), 2)
         
         XCTAssertEqual(try bin.readByte(), 255)

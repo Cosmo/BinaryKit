@@ -150,17 +150,17 @@ public struct Binary {
         return result
     }
     
-    /// Returns the `Int`-value of the next n-bits (`quantitiy`)
+    /// Returns the `Int`-value of the next n-bits (`quantity`)
     /// and increments the reading cursor by n-bits.
-    public mutating func readBits(_ quantitiy: Int) throws -> Int {
-        let range = (readBitCursor..<(readBitCursor + quantitiy))
+    public mutating func readBits(_ quantity: Int) throws -> Int {
+        let range = (readBitCursor..<(readBitCursor + quantity))
         let result = try getBits(range: range)
-        incrementReadCursorBy(bits: quantitiy)
+        incrementReadCursorBy(bits: quantity)
         return result
     }
     
-    public mutating func readBits(_ quantitiy: UInt8) throws -> Int {
-        return try readBits(Int(quantitiy))
+    public mutating func readBits(_ quantity: UInt8) throws -> Int {
+        return try readBits(Int(quantity))
     }
     
     /// Returns the `UInt8`-value of the next byte and
@@ -169,26 +169,26 @@ public struct Binary {
         return UInt8(try readBits(byteSize))
     }
     
-    /// Returns a `[UInt8]` of the next n-bytes (`quantitiy`) and
+    /// Returns a `[UInt8]` of the next n-bytes (`quantity`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readBytes(_ quantitiy: Int) throws -> [UInt8] {
+    public mutating func readBytes(_ quantity: Int) throws -> [UInt8] {
         // Check if the request is within bounds
-        let range = (readBitCursor..<(readBitCursor + quantitiy * byteSize))
+        let range = (readBitCursor..<(readBitCursor + quantity * byteSize))
         let storeRange = 0...(bytesStore.count * byteSize)
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
-        return try (0..<quantitiy).map{ _ in try readByte() }
+        return try (0..<quantity).map{ _ in try readByte() }
     }
     
-    public mutating func readBytes(_ quantitiy: UInt8) throws -> [UInt8] {
-        return try readBytes(Int(quantitiy))
+    public mutating func readBytes(_ quantity: UInt8) throws -> [UInt8] {
+        return try readBytes(Int(quantity))
     }
     
-    /// Returns a `String` of the next n-bytes (`quantitiy`) and
+    /// Returns a `String` of the next n-bytes (`quantity`) and
     /// increments the reading cursor by n-bytes.
-    public mutating func readString(quantitiyOfBytes quantitiy: Int, encoding: String.Encoding = .ascii) throws -> String {
-        guard let result = String(bytes: try self.readBytes(quantitiy), encoding: encoding) else {
+    public mutating func readString(quantityOfBytes quantity: Int, encoding: String.Encoding = .ascii) throws -> String {
+        guard let result = String(bytes: try self.readBytes(quantity), encoding: encoding) else {
             throw BinaryError.notString
         }
         return result

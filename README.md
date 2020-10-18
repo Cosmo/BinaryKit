@@ -4,7 +4,7 @@ BinaryKit helps you to break down binary data into bits and bytes, easily access
 
 ## Access Bytes
 
-By using any `read*` method (`readByte()`, `readBytes(quantitiy:)`, `readBit()`, …), BinaryKit will increment an internal cursor (or reading offset) to the end of the requested bit or byte, so the next `read*` method can continue from there.
+By using any `read*` method (`readByte()`, `readBytes(quantity:)`, `readBit()`, …), BinaryKit will increment an internal cursor (or reading offset) to the end of the requested bit or byte, so the next `read*` method can continue from there.
 
 Any `get*` method (`getByte(index:)`, `getBytes(range:)`, `getBit(index:)`, …) will give access to binary data at any given location — without incrementing the internal cursor.
 
