@@ -314,6 +314,18 @@ final class BinaryKitTests: XCTestCase {
         XCTAssertEqual(try bin.readBits(13), 0x11ff)
     }
     
+    func testSignedBits() {
+        var binary = Binary(bytes: [0xFF, 0x7F, 0x00, 0xFF, 0x77, 0xFF, 0xFF])
+        XCTAssertEqual(try binary.readSignedBits(8), -127)
+        XCTAssertEqual(try binary.readSignedBits(8), 127)
+        XCTAssertEqual(try binary.readSignedBits(8), 0)
+        XCTAssertEqual(try binary.readSignedBits(4), -7)
+        XCTAssertEqual(try binary.readSignedBits(4), -7)
+        XCTAssertEqual(try binary.readSignedBits(4), 7)
+        XCTAssertEqual(try binary.readSignedBits(4), 7)
+        XCTAssertEqual(try binary.readSignedBits(16), -32767)
+    }
+    
     // MARK: -
 
     static var allTests = [

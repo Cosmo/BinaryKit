@@ -327,3 +327,12 @@ public struct Binary {
         bytesStore.append(contentsOf: int.bytes)
     }
 }
+
+
+extension Binary {
+    mutating func readSignedBits(_ quantity: UInt8) throws -> Int {
+        let multiplicationFactor = (try readBit() == 1) ? -1 : 1
+        let value = try readBits(quantity - 1)
+        return value * multiplicationFactor
+    }
+}
