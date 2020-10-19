@@ -328,7 +328,7 @@ final class BinaryKitTests: XCTestCase {
     
     // MARK: -
 
-    static var allTests = [
+    static var allTests: Linux.TestList<BinaryKitTests> = [
         ("testBitIndex", testBitIndex),
         ("testBit", testBit),
         ("testBits", testBits),
@@ -337,9 +337,14 @@ final class BinaryKitTests: XCTestCase {
         ("testByteIndex", testByteIndex),
         ("testBytes", testBytes),
         ("testBytesRange", testBytesRange),
+        ("testMixedReadByte", testMixedReadByte),
+        ("testMixedReadBytes", testMixedReadBytes),
+        ("testReadBytesThrowsBeforeReading", testReadBytesThrowsBeforeReading),
+        ("testReadBitsThrowsBeforeReading", testReadBitsThrowsBeforeReading),
         ("testHexInit", testHexInit),
         ("testNibble", testNibble),
         ("testStringAndCharacter", testStringAndCharacter),
+        ("testBool", testBool),
         ("testFinders", testFinders),
         ("testWrite", testWrite),
         ("testWriteInt", testWriteInt),
