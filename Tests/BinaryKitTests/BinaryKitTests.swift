@@ -349,5 +349,6 @@ final class BinaryKitTests: XCTestCase {
         ("testWrite", testWrite),
         ("testWriteInt", testWriteInt),
         ("testLongBits", testLongBits),
+        ("testSignedBits", testSignedBits),
     ]
 }
