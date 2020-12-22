@@ -10,26 +10,33 @@ public struct Binary {
     public private(set) var writeBitCursor: Int
     
     /// Returns the stored bytes.
-    public private(set) var bytesStore: [UInt8]
+    public private(set) var dataStore: Data
     
     /// Constant with number of bits in a byte
     private let byteSize = UInt8.bitWidth
     
     /// Returns the stored number of bytes.
     public var count: Int {
-        return bytesStore.count
+        return dataStore.count
     }
     
     /// Creates a new `Binary`.
     public init(bytes: [UInt8]) {
         self.readBitCursor = 0
         self.writeBitCursor = 0
-        self.bytesStore = bytes
+        self.dataStore = Data(bytes)
+    }
+    
+    /// Creates a new `Binary`.
+    public init(data: Data) {
+        self.readBitCursor = 0
+        self.writeBitCursor = 0
+        self.dataStore = data
     }
     
     /// Creates an empty `Binary`.
     public init() {
-        self.init(bytes: [])
+        self.init(data: Data())
     }
     
     /// Creates a new `Binary` with a string of hexadecimal values converted to bytes.
@@ -82,7 +89,7 @@ public struct Binary {
     /// Returns an `UInt8` with the value of 0 or 1 of the given position.
     public func getBit(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
-        let storeRange = 0..<bytesStore.count
+        let storeRange = 0..<dataStore.count
         let readByteCursor = index / byteSize
         guard storeRange.contains(readByteCursor) else {
             throw BinaryError.outOfBounds
@@ -91,13 +98,13 @@ public struct Binary {
         // Get bit
         let byteLastBitIndex = 7
         let bitindex = byteLastBitIndex - (index % byteSize)
-        return (bytesStore[readByteCursor] >> bitindex) & 1
+        return (dataStore[readByteCursor] >> bitindex) & 1
     }
     
     /// Returns the `Int`-value of the given range.
     public func getBits(range: Range<Int>) throws -> Int {
         // Check if the request is within bounds
-        let storeRange = 0...(bytesStore.count * byteSize)
+        let storeRange = 0...(dataStore.count * byteSize)
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
@@ -112,25 +119,25 @@ public struct Binary {
     /// Returns the `UInt8`-value of the given `index`.
     public func getByte(index: Int) throws -> UInt8 {
         // Check if the request is within bounds
-        let storeRange = 0..<bytesStore.count
+        let storeRange = 0..<dataStore.count
         guard storeRange.contains(index) else {
             throw BinaryError.outOfBounds
         }
         
         // Get byte
-        return bytesStore[index]
+        return dataStore[index]
     }
     
     /// Returns an `[UInt8]` of the given `range`.
     public func getBytes(range: Range<Int>) throws -> [UInt8] {
         // Check if the request is within bounds
-        let storeRange = 0...bytesStore.count
+        let storeRange = 0...dataStore.count
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
         
         // Get bytes
-        return Array(bytesStore[range])
+        return Array(dataStore[range])
     }
     
     
@@ -174,7 +181,7 @@ public struct Binary {
     public mutating func readBytes(_ quantity: Int) throws -> [UInt8] {
         // Check if the request is within bounds
         let range = (readBitCursor..<(readBitCursor + quantity * byteSize))
-        let storeRange = 0...(bytesStore.count * byteSize)
+        let storeRange = 0...(dataStore.count * byteSize)
         guard storeRange.contains(range.endIndex) else {
             throw BinaryError.outOfBounds
         }
@@ -270,8 +277,8 @@ public struct Binary {
     /// Returns indices of given `[UInt8]`.
     public func indices(of sequence: [UInt8]) -> [Int] {
         let size = sequence.count
-        return bytesStore.indices.dropLast(size - 1).filter {
-            bytesStore[$0..<($0 + size)].elementsEqual(sequence)
+        return dataStore.indices.dropLast(size - 1).filter {
+            dataStore[$0..<($0 + size)].elementsEqual(sequence)
         }
     }
     
@@ -287,12 +294,12 @@ public struct Binary {
     
     /// Writes a byte (`UInt8`) to `Binary`.
     public mutating func writeByte(_ byte: UInt8) {
-        bytesStore.append(byte)
+        dataStore.append(byte)
     }
     
     /// Writes bytes (`[UInt8]`) to `Binary`.
     public mutating func writeBytes(_ bytes: [UInt8]) {
-        bytesStore.append(contentsOf: bytes)
+        dataStore.append(contentsOf: bytes)
     }
     
     /// Writes a bit (`UInt8`) to `Binary`.
@@ -300,12 +307,12 @@ public struct Binary {
         let byte: UInt8 = bit << Int(7 - (writeBitCursor % byteSize))
         let index = writeBitCursor / byteSize
         
-        if bytesStore.count == index {
-            bytesStore.append(byte)
+        if dataStore.count == index {
+            dataStore.append(byte)
         } else {
-            let oldByte = bytesStore[index]
+            let oldByte = dataStore[index]
             let newByte = oldByte ^ byte
-            bytesStore[index] = newByte
+            dataStore[index] = newByte
         }
         
         writeBitCursor = writeBitCursor + 1
@@ -324,7 +331,7 @@ public struct Binary {
     
     /// Writes an `FixedWidthInteger` (`Int`, `UInt8`, `Int8`, `UInt16`, `Int16`, …) to `Binary`.
     public mutating func writeInt<T: FixedWidthInteger>(_ int: T) {
-        bytesStore.append(contentsOf: int.bytes)
+        dataStore.append(contentsOf: int.bytes)
     }
 }
 
